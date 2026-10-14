@@ -1,12 +1,22 @@
-name: Build Slice for Windows
+name: Build & release Slice for Windows
 
+# Releases are driven by the version in package.json:
+#   bump "version", push to main  ->  builds Slice-Setup.exe + Slice-Portable.exe
+#   and publishes release v<version> (only if that version isn't released yet).
+# Pushing a v* tag or running the workflow by hand works too.
 on:
   push:
+    branches: [main]
+    paths: ['package.json', '.github/workflows/release.yml']
     tags: ['v*']
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   windows:
@@ -18,20 +28,49 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
       - run: npm run check
       - name: Build installer + portable
         run: npx electron-builder --win nsis portable --x64 --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+
       - uses: actions/upload-artifact@v4
         with:
           name: Slice-windows
           path: |
-            dist/*.exe
-            dist/*.blockmap
-      - name: Attach to GitHub release
-        if: startsWith(github.ref, 'refs/tags/v')
+            dist/Slice-Setup.exe
+            dist/Slice-Portable.exe
+
+      - name: Work out the release
+        id: rel
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then tag="$GITHUB_REF_NAME"; else tag="v$(node -p "require('./package.json').version")"; fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "Release $tag already exists, nothing to publish."
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish release
+        if: steps.rel.outputs.publish == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.exe
+          tag_name: ${{ steps.rel.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Slice ${{ steps.rel.outputs.tag }}
+          make_latest: true
           generate_release_notes: true
+          body: |
+            **Download:** [Slice-Setup.exe](https://github.com/${{ github.repository }}/releases/download/${{ steps.rel.outputs.tag }}/Slice-Setup.exe) (installer) · [Slice-Portable.exe](https://github.com/${{ github.repository }}/releases/download/${{ steps.rel.outputs.tag }}/Slice-Portable.exe) (no install)
+
+            Windows 10 & 11, x64. New apps aren't code-signed yet, so Windows may show “Windows protected your PC” — click **More info → Run anyway**.
+          files: |
+            dist/Slice-Setup.exe
+            dist/Slice-Portable.exe

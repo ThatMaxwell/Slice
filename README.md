@@ -93,7 +93,7 @@ npm run paparazzi  # screenshot the site + browser UI on desktop, iPhone 17, iPh
 npm run dist:win   # build the NSIS installer and portable .exe into dist/
 ```
 
-Pushing a tag like `v0.1.0` runs `.github/workflows/release.yml`. It builds the Windows installer and portable `.exe` on GitHub Actions and attaches both to the release.
+**Releasing:** bump `version` in `package.json` and push to `main`. `.github/workflows/release.yml` builds `Slice-Setup.exe` and `Slice-Portable.exe` on GitHub Actions and publishes release `v<version>`. Those fixed names are what the website's Download buttons fetch directly (`/releases/latest/download/Slice-Setup.exe`).
 
 ### Google sign-in
 Create an OAuth client of type **Desktop app** in Google Cloud Console → Credentials. Then give Slice the ID in one of three ways:
