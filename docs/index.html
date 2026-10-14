@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Slice — the browser that gets you</title>
+  <meta name="description" content="Slice is an AI-native browser. Say it — Slice searches, answers, opens sites and restyles itself. Built on Blink, uBlock Origin built in. Free for Windows.">
+  <meta name="theme-color" content="#05070b">
+  <meta property="og:title" content="Slice — say it, Slice does it">
+  <meta property="og:description" content="An AI-native browser that searches, answers, opens and restyles itself — from one bar.">
+  <meta property="og:image" content="https://thatmaxwell.github.io/Slice/assets/og.png">
+  <meta property="og:url" content="https://thatmaxwell.github.io/Slice/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" href="assets/favicon-64.png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="is-booting">
+
+  <!-- ============================================================ BOOT -->
+  <div id="boot" aria-hidden="true">
+    <div class="loader" id="loader">
+      <svg class="tide" viewBox="0 0 1254 1254" aria-hidden="true">
+        <defs>
+          <clipPath id="slice-clip"><path d="M319.3 110.9A594 594 0 1 0 934.7 110.9A311 311 0 0 1 319.3 110.9Z"/></clipPath>
+          <linearGradient id="tide-g" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2f8cff"/><stop offset=".45" stop-color="#5ad1ff"/><stop offset=".62" stop-color="#d9f6ff"/><stop offset=".78" stop-color="#ffd9a0"/><stop offset="1" stop-color="#ff9a3c"/>
+          </linearGradient>
+        </defs>
+        <g clip-path="url(#slice-clip)">
+          <rect width="1254" height="1254" fill="rgba(255,255,255,.04)"/>
+          <g class="tide-fill">
+            <path class="wave w1" d="M-1254 60 Q-940 -10 -627 60 T0 60 T627 60 T1254 60 T1881 60 V1500 H-1254Z" fill="url(#tide-g)"/>
+            <path class="wave w2" d="M-1254 90 Q-940 30 -627 90 T0 90 T627 90 T1254 90 T1881 90 V1500 H-1254Z" fill="rgba(255,255,255,.18)"/>
+          </g>
+        </g>
+        <path class="outline" d="M319.3 110.9A594 594 0 1 0 934.7 110.9A311 311 0 0 1 319.3 110.9Z" pathLength="1"/>
+      </svg>
+      <div class="orbit"><i></i></div>
+      <div class="loader-meta"><span id="load-pct">00</span><span class="sep">/</span><span>slicing the web</span></div>
+    </div>
+    <div class="boot-stage">
+      <img class="boot-white" src="assets/slice-mini-white.svg" alt="">
+      <img class="boot-color" src="assets/slice-logo.webp" alt="">
+      <div class="boot-ring"></div>
+    </div>
+    <button class="sound-chip" id="sound-chip" hidden><span class="eq"><i></i><i></i><i></i></span> Tap for sound</button>
+    <button class="skip" id="skip">Skip intro</button>
+  </div>
+
+  <div class="progress" id="progress"></div>
+  <div class="cursor-glow" id="cursor-glow"></div>
+
+  <!-- ============================================================ NAV -->
+  <header class="nav" id="nav">
+    <a href="#top" class="brand" aria-label="Slice home">
+      <img class="brand-logo" id="brand-logo" src="assets/slice-logo-512.png" alt="">
+      <span class="brand-name">Slice</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#ai">AI</a>
+      <a href="#customize">Customize</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#lineup">Lineup</a>
+    </nav>
+    <a class="btn btn-primary btn-sm magnetic" href="#download"><svg viewBox="0 0 24 24"><path d="M3 5.5l7.5-1v7H3zM3 12.5h7.5v7L3 18.5zM11.5 4.4L21 3v8.5h-9.5zM11.5 12.5H21V21l-9.5-1.4z"/></svg>Download</a>
+  </header>
+
+  <main id="top">
+    <!-- ============================================================ HERO -->
+    <section class="hero">
+      <div class="hero-bg" aria-hidden="true">
+        <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+        <div class="grid-lines"></div>
+      </div>
+      <div class="hero-copy">
+        <a class="eyebrow reveal" href="#download"><span class="pill-new">New</span> Slice 0.1 for Windows — free <span class="arrow">→</span></a>
+        <h1 class="hero-title">
+          <span class="line reveal"><span>Say it.</span></span>
+          <span class="line reveal"><span><em class="serif grad">Slice</em> does it.</span></span>
+        </h1>
+        <p class="hero-sub reveal">An AI-native browser that searches, answers, opens sites and restyles itself — all from one bar. Built on Blink. uBlock Origin built in. Heavily inspired by the best of Dia, Arc and Zen.</p>
+        <div class="hero-ctas reveal">
+          <a class="btn btn-primary btn-lg magnetic" href="#download"><svg viewBox="0 0 24 24"><path d="M3 5.5l7.5-1v7H3zM3 12.5h7.5v7L3 18.5zM11.5 4.4L21 3v8.5h-9.5zM11.5 12.5H21V21l-9.5-1.4z"/></svg>Download for Windows</a>
+          <a class="btn btn-ghost btn-lg" href="#ai">See how it works <span class="arrow">↓</span></a>
+        </div>
+        <p class="hero-meta reveal">Free · Windows 10 & 11 · Android coming soon</p>
+      </div>
+
+      <div class="stage reveal" id="hero-stage">
+        <div class="stage-glow"></div>
+        <div class="mock-wrap" id="hero-mock-wrap"></div>
+        <div class="demo-caption" id="demo-caption"><span class="dot"></span><span id="demo-caption-text">Live demo — click the bar and type anything</span></div>
+      </div>
+    </section>
+
+    <!-- ============================================================ MARQUEE -->
+    <section class="marquee-sec" aria-label="Things you can say">
+      <p class="kicker center">Things people say to Slice</p>
+      <div class="marquee"><div class="track" id="mq1"></div></div>
+      <div class="marquee reverse"><div class="track" id="mq2"></div></div>
+    </section>
+
+    <!-- ============================================================ TWO BARS -->
+    <section class="sec" id="ai">
+      <div class="sec-head reveal">
+        <p class="kicker">One window, two bars</p>
+        <h2>A partner in the new tab.<br><span class="dim">A plain search box up top.</span></h2>
+        <p class="lede">Open a new tab and you're talking to Slice. Prefer the classic way? The top bar is just your search engine — no AI, no fuss.</p>
+      </div>
+      <div class="two-bars">
+        <article class="bar-card reveal tilt">
+          <div class="bar-card-top"><span class="tag tag-ai">✦ The AI bar</span><span class="hint">new tab</span></div>
+          <div class="fake-input ai"><span class="spark">✦</span><span class="typer" data-words="is it true that octopuses have 3 hearts?|2026 news|summarize this page|make it lemon|yo"></span><span class="caret"></span></div>
+          <ul class="ticks">
+            <li>Quick web search — reads only what's needed</li>
+            <li>Answers with sources you can click</li>
+            <li>Images for <em>every</em> prompt, even “hey!”</li>
+            <li>Opens sites by name — “yo” is YouTube</li>
+            <li>Changes your settings when you ask</li>
+          </ul>
+        </article>
+        <article class="bar-card reveal tilt">
+          <div class="bar-card-top"><span class="tag">⌕ The top bar</span><span class="hint">always there</span></div>
+          <div class="fake-input"><span class="g">G</span><span class="typer" data-words="weather berlin|esp32 pinout|lofi beats|github.com"></span><span class="caret"></span></div>
+          <ul class="ticks">
+            <li>Straight to Google — or Brave, DuckDuckGo, Kagi…</li>
+            <li>11 engines + your own custom URL</li>
+            <li>Tab switching and URLs as you type</li>
+            <li>Zero AI unless you hit <kbd>✦</kbd></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============================================================ BENTO -->
+    <section class="sec" id="features">
+      <div class="sec-head reveal">
+        <p class="kicker">Features</p>
+        <h2>Everything a browser should do.<br><span class="dim">Plus everything you'd ask it to.</span></h2>
+      </div>
+      <div class="bento">
+        <article class="cell c-answers spot reveal">
+          <div class="cell-copy"><h3>Answers with receipts</h3><p>Ask about news, facts or “is … true?” and Slice does a quick web search, reads the top pages and cites them.</p></div>
+          <div class="viz answers-viz">
+            <div class="q-bubble">is it true that bananas are berries?</div>
+            <div class="status-row"><span class="chip-s"><span class="spin-s"></span>Searching the web</span><span class="chip-s ok"><i class="fv" style="--c:#3b82f6"></i><i class="fv" style="--c:#f59e0b"></i><i class="fv" style="--c:#10b981"></i>Read 3 of 6 results</span></div>
+            <p class="a-text">Yep — botanically, bananas are berries <b class="cite">1</b> while strawberries aren't <b class="cite">2</b>. A berry grows from a single ovary with seeds inside <b class="cite">3</b>.</p>
+          </div>
+        </article>
+        <article class="cell c-panel spot reveal">
+          <div class="cell-copy"><h3>The panel always has something</h3><p>Every prompt opens a panel of images and sources on the right. Skeleton first, then everything pops in.</p></div>
+          <div class="viz panel-viz" id="panel-viz"></div>
+        </article>
+        <article class="cell c-sites spot reveal">
+          <div class="cell-copy"><h3>Say a site</h3><p>No AI round-trip. Just go.</p></div>
+          <div class="viz sites-viz">
+            <div class="say"><span class="say-in" id="say-in">yo</span><span class="say-arrow">→</span><span class="say-out" id="say-out"><i style="background:#ff0033"></i>YouTube</span></div>
+          </div>
+        </article>
+        <article class="cell c-auto spot reveal">
+          <div class="cell-copy"><h3>It drives the browser</h3><p>“Make my search Brave and the browser lemon” — done. Themes, engines, layouts, glass — just ask.</p></div>
+          <div class="viz auto-viz" id="auto-viz">
+            <div class="sw-row"><span>Search → Brave</span><i class="sw"></i></div>
+            <div class="sw-row"><span>Theme → Lemon</span><i class="sw"></i></div>
+            <div class="sw-row"><span>Sidebar mode</span><i class="sw"></i></div>
+            <div class="sw-row"><span>Acrylic glass</span><i class="sw"></i></div>
+          </div>
+        </article>
+        <article class="cell c-block spot reveal">
+          <div class="cell-copy"><h3>uBlock Origin, by default</h3><p>uBO's own filter lists, built in and switched on. Ads, trackers and malware never load.</p></div>
+          <div class="viz block-viz"><div class="shield-big"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg></div><div class="counter"><b id="blocked-count">0</b><span>ads & trackers blocked this session</span></div></div>
+        </article>
+        <article class="cell c-speed spot reveal">
+          <div class="cell-copy"><h3>Blink-fast, de-Googled</h3><p>Chromium's Blink engine with Google's phone-home services switched off.</p></div>
+          <div class="viz speed-viz">
+            <div class="sb"><span>Sync & account pings</span><i class="off">off</i></div>
+            <div class="sb"><span>Privacy Sandbox ad topics</span><i class="off">off</i></div>
+            <div class="sb"><span>Component updater</span><i class="off">off</i></div>
+            <div class="sb"><span>Global Privacy Control</span><i class="on">on</i></div>
+          </div>
+        </article>
+        <article class="cell c-layout spot reveal">
+          <div class="cell-copy"><h3>Top tabs or sidebar</h3><p>Classic tabs, or vertical tabs like Arc & Zen. Compact mode hides it all until you hover.</p></div>
+          <div class="viz layout-viz" id="layout-viz">
+            <div class="lv-win"><div class="lv-side"><i></i><i></i><i></i><i></i></div><div class="lv-top"><i></i><i></i><i></i></div><div class="lv-page"></div></div>
+          </div>
+        </article>
+        <article class="cell c-assist spot reveal">
+          <div class="cell-copy"><h3>Chat with any page</h3><p>Hit <kbd>Ctrl</kbd> <kbd>J</kbd> and Slice reads the tab you're on. Summaries, takeaways, “explain like I'm 12”.</p></div>
+          <div class="viz assist-viz">
+            <div class="av-page"><i></i><i></i><i class="s"></i><i></i><i class="s"></i></div>
+            <div class="av-side"><b>✦ Ask Slice</b><span class="av-msg u">tl;dr?</span><span class="av-msg a">Three points: the launch moved to May, prices drop 20%, and the beta is open now.</span></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============================================================ CUSTOMIZE -->
+    <section class="sec" id="customize">
+      <div class="sec-head reveal">
+        <p class="kicker">Super customizable</p>
+        <h2>Make it <em class="serif grad" id="cz-word">yours</em>.<br><span class="dim">Then make it weirder.</span></h2>
+        <p class="lede">11 themes, any colour, top tabs or sidebar, compact mode, glass, corners, density, fonts, custom CSS mods. Play with it — this is the real look.</p>
+      </div>
+      <div class="playground reveal">
+        <div class="pg-controls">
+          <div class="pg-group">
+            <label>Theme</label>
+            <div class="swatches" id="pg-themes"></div>
+          </div>
+          <div class="pg-group">
+            <label>Tabs</label>
+            <div class="seg" id="pg-layout"><button class="on" data-v="top">Top</button><button data-v="sidebar">Sidebar</button></div>
+          </div>
+          <div class="pg-group row2">
+            <label>Glass</label>
+            <button class="toggle" id="pg-glass" aria-pressed="false"><i></i></button>
+          </div>
+          <div class="pg-group row2">
+            <label>Compact</label>
+            <button class="toggle" id="pg-compact" aria-pressed="false"><i></i></button>
+          </div>
+          <div class="pg-group">
+            <label>Corners <output id="pg-radius-out">12px</output></label>
+            <input type="range" id="pg-radius" min="0" max="24" value="12">
+          </div>
+          <div class="pg-group">
+            <label>…or just ask</label>
+            <div class="ask-chips">
+              <button data-ask="lemon">“make it lemon” 🍋</button>
+              <button data-ask="sidebar">“vertical tabs pls”</button>
+              <button data-ask="glass">“make it see-through”</button>
+              <button data-ask="sakura">“something pink”</button>
+            </div>
+          </div>
+        </div>
+        <div class="pg-preview">
+          <div class="wallpaper" id="pg-wall"></div>
+          <div class="mock-wrap" id="pg-mock-wrap"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ GLASS -->
+    <section class="sec glass-sec" id="glass">
+      <div class="glass-scene" id="glass-scene">
+        <div class="dunes" aria-hidden="true">
+          <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b4ea8"/><stop offset=".55" stop-color="#3fa9ff"/><stop offset="1" stop-color="#bfeaff"/></linearGradient>
+              <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2cc3f0"/><stop offset="1" stop-color="#9fe6ff"/></linearGradient>
+              <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe3b3"/><stop offset="1" stop-color="#ff9c4a"/></linearGradient>
+            </defs>
+            <rect width="1600" height="900" fill="url(#sky)"/>
+            <circle cx="1220" cy="250" r="90" fill="#fff6dc" opacity=".9"/>
+            <path class="d-sea" d="M0 470 C300 420 520 520 820 480 S1350 420 1600 470 V900 H0Z" fill="url(#sea)"/>
+            <path class="d-foam" d="M0 560 C260 520 560 600 860 560 S1380 520 1600 560 V900 H0Z" fill="#e9fbff" opacity=".85"/>
+            <path class="d-sand" d="M0 610 C300 570 600 660 900 620 S1400 570 1600 620 V900 H0Z" fill="url(#sand)"/>
+          </svg>
+        </div>
+        <div class="glass-copy reveal">
+          <p class="kicker light">Glass mode</p>
+          <h2>See your world<br>through the frame.</h2>
+          <p>Mica, Acrylic or Tabbed — the frame blurs your wallpaper while pages stay crisp. Windows 11 and macOS.</p>
+        </div>
+        <div class="glass-win reveal" id="glass-win">
+          <div class="gw-side">
+            <div class="gw-dots"><i></i><i></i><i></i></div>
+            <div class="gw-omni">Search or ask…</div>
+            <div class="gw-tab on"><i class="mini"></i>New tab</div>
+            <div class="gw-tab"><i style="background:#ff0033"></i>YouTube</div>
+            <div class="gw-tab"><i style="background:#ff4500"></i>r/esp32</div>
+            <div class="gw-tab"><i style="background:#111"></i>GitHub</div>
+          </div>
+          <div class="gw-page">
+            <img src="assets/slice-mini-white.svg" alt="" class="gw-logo">
+            <div class="gw-input">Ask anything…</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ PRIVACY / MEMORY -->
+    <section class="sec" id="privacy">
+      <div class="sec-head reveal">
+        <p class="kicker">Memory with manners</p>
+        <h2>It learns your taste.<br><span class="dim">Not your secrets.</span></h2>
+        <p class="lede">Slice remembers what you're into so it can be an actual partner — and learns how you talk. Personal searches are never stored and never read. It all lives on your device.</p>
+      </div>
+      <div class="sorter reveal" id="sorter">
+        <div class="sorter-in" id="sorter-in"></div>
+        <div class="bins">
+          <div class="bin kept"><b>Learned from</b><span>your taste, your vibe</span><div class="bin-items"></div></div>
+          <div class="bin discarded"><b>Discarded</b><span>throwaway stuff</span><div class="bin-items"></div></div>
+          <div class="bin private"><b>Private</b><span>never stored, never read</span><div class="bin-items"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ SETUP -->
+    <section class="sec" id="setup">
+      <div class="sec-head reveal center">
+        <p class="kicker">Setup</p>
+        <h2>Three clicks. <span class="dim">You're in.</span></h2>
+      </div>
+      <ol class="steps">
+        <li class="step reveal"><span class="n">1</span><div class="step-art"><div class="gbtn"><svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34.1 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34.1 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Continue with Google</div></div><h3>Add your Google account</h3><p>So Slice knows who it's talking to. Or skip it.</p></li>
+        <li class="step reveal"><span class="n">2</span><div class="step-art tunes"><span class="t on">✌️ Bestie</span><span class="t">🔎 Researcher</span><span class="t on">🛠️ Maker</span><span class="t">◽ Minimalist</span><span class="t">🎨 Creative</span><span class="t">📚 Student</span></div><h3>Pick your fine-tunes</h3><p>Preset personalities for how Slice talks and looks. Mix a few.</p></li>
+        <li class="step reveal"><span class="n">3</span><div class="step-art"><div class="startbtn">Start browsing</div></div><h3>Start browsing</h3><p>That's it. Free Gemini via Puter.js — or bring your own key.</p></li>
+      </ol>
+    </section>
+
+    <!-- ============================================================ SPECS -->
+    <section class="sec" id="specs">
+      <div class="sec-head reveal">
+        <p class="kicker">Under the hood</p>
+        <h2>Small download.<br><span class="dim">Serious engine.</span></h2>
+      </div>
+      <div class="specs">
+        <div class="spec reveal"><span>Engine</span><b>Blink</b><p>Chromium's rendering engine via Electron 44, with Google services stripped and hardening flags on.</p></div>
+        <div class="spec reveal"><span>AI</span><b>Gemini 3.5 Flash-Lite</b><p>Google's newest Flash-Lite, free through Puter.js. Or bring your own Gemini / OpenAI-compatible key.</p></div>
+        <div class="spec reveal"><span>Prompt cache</span><b>Read once</b><p>Slice builds its system prompt at launch and caches it — no re-sending your profile every message.</p></div>
+        <div class="spec reveal"><span>Blocking</span><b>uBlock Origin</b><p>uBO filters, badware, privacy, unbreak, EasyList, EasyPrivacy & Peter Lowe's — on by default.</p></div>
+        <div class="spec reveal"><span>Search</span><b>11 engines</b><p><span class="engines">Google · Brave · DuckDuckGo · Bing · Startpage · Ecosia · Kagi · Perplexity · Qwant · Mojeek · Yahoo</span> + custom.</p></div>
+        <div class="spec reveal"><span>Platforms</span><b>Windows</b><p>Windows 10 & 11, installer or portable. Android — coming soon.</p></div>
+      </div>
+    </section>
+
+    <!-- ============================================================ LINEUP -->
+    <section class="sec" id="lineup">
+      <div class="sec-head reveal center">
+        <p class="kicker">The lineup</p>
+        <h2>One Slice today.<br><span class="dim">More on the way.</span></h2>
+      </div>
+      <div class="lineup">
+        <article class="lu lu-main reveal tilt">
+          <span class="lu-badge live">Available now</span>
+          <img src="assets/slice-logo-512.png" alt="">
+          <h3>Slice</h3>
+          <p>The full AI-native browser for Windows.</p>
+          <a class="btn btn-primary btn-sm" href="#download">Download</a>
+        </article>
+        <article class="lu lu-android reveal tilt">
+          <span class="lu-badge">Coming soon</span>
+          <div class="lu-phone"><img src="assets/slice-mini-white.svg" alt=""><i></i></div>
+          <h3>Slice for Android</h3>
+          <p>Your partner in your pocket.</p>
+        </article>
+        <article class="lu lu-mini reveal tilt">
+          <span class="lu-badge">Coming soon</span>
+          <div class="lu-mark mini"><img src="assets/slice-mini-white.svg" alt=""></div>
+          <h3>Slice Mini</h3>
+          <p>Featherweight. For older PCs and focus.</p>
+        </article>
+        <article class="lu lu-pro reveal tilt">
+          <span class="lu-badge">Coming soon</span>
+          <div class="lu-mark pro"><img src="assets/slice-mini-white.svg" alt=""></div>
+          <h3>Slice Pro</h3>
+          <p>More models, deeper automation, workflows.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============================================================ DOWNLOAD -->
+    <section class="sec dl" id="download">
+      <div class="dl-card reveal">
+        <div class="dl-glow"></div>
+        <img class="dl-logo" src="assets/slice-logo-512.png" alt="Slice">
+        <h2>Get Slice.</h2>
+        <p>Free for Windows 10 & 11. No account required.</p>
+        <div class="dl-btns">
+          <a class="btn btn-primary btn-lg magnetic" href="https://github.com/ThatMaxwell/Slice/releases/latest"><svg viewBox="0 0 24 24"><path d="M3 5.5l7.5-1v7H3zM3 12.5h7.5v7L3 18.5zM11.5 4.4L21 3v8.5h-9.5zM11.5 12.5H21V21l-9.5-1.4z"/></svg>Download installer</a>
+          <a class="btn btn-ghost btn-lg" href="https://github.com/ThatMaxwell/Slice/releases/latest">Portable .exe</a>
+        </div>
+        <p class="dl-soon"><span class="android">🤖</span> Android — coming soon · Slice Mini & Pro — coming soon</p>
+      </div>
+    </section>
+
+    <!-- ============================================================ FAQ -->
+    <section class="sec faq" id="faq">
+      <div class="sec-head reveal center"><p class="kicker">FAQ</p><h2>Questions, answered.</h2></div>
+      <div class="faq-list">
+        <details class="reveal"><summary>Is Slice free?</summary><p>Yes. The built-in AI runs Google's Gemini 3.5 Flash-Lite through Puter.js at no cost to you (you sign in to Puter once). You can also paste your own Gemini key, or any OpenAI-compatible key, in Settings.</p></details>
+        <details class="reveal"><summary>What does Slice remember about me?</summary><p>Your searches help it learn your taste and how you talk — stored locally on your PC. Personal searches (health, money, relationships, identity, contact details) are filtered out before they're stored, and the AI never sees them. Throwaway searches like “yo” are discarded. You can view and delete everything in Settings → Memory.</p></details>
+        <details class="reveal"><summary>Is it really Chromium? Do my sites work?</summary><p>Slice renders pages with Blink, the same engine as Chrome, Edge, Brave and Vivaldi — so sites work the way you expect. Google's background services (sync, Safe Browsing pings, component updater, Privacy Sandbox ad topics) are switched off.</p></details>
+        <details class="reveal"><summary>Does uBlock Origin come built in?</summary><p>Slice ships uBlock Origin's own filter lists, compiled into a native blocking engine and switched on by default — network blocking, cosmetic filtering and scriptlets. Toggle it any time from the shield.</p></details>
+        <details class="reveal"><summary>Can I use it without the AI?</summary><p>Totally. The top bar is a plain search box for your chosen engine. Set web search to “off”, turn off the results panel, and Slice is just a fast, clean browser.</p></details>
+        <details class="reveal"><summary>Mac, Linux, Android?</summary><p>Windows is first. Android is coming soon. Slice is built on cross-platform tech, so Mac and Linux builds are on the roadmap too.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="foot-top">
+      <a href="#top" class="brand"><img src="assets/slice-logo-512.png" alt=""><span class="brand-name">Slice</span></a>
+      <p>The browser that gets you.</p>
+    </div>
+    <div class="foot-cols">
+      <div><b>Product</b><a href="#features">Features</a><a href="#customize">Customize</a><a href="#lineup">Lineup</a><a href="#download">Download</a></div>
+      <div><b>Resources</b><a href="https://github.com/ThatMaxwell/Slice">GitHub</a><a href="https://github.com/ThatMaxwell/Slice/releases">Releases</a><a href="https://github.com/ThatMaxwell/Slice/issues">Report a bug</a></div>
+      <div><b>Privacy</b><a href="#privacy">Memory</a><a href="#faq">FAQ</a></div>
+    </div>
+    <p class="foot-note">© 2026 Slice. Not affiliated with Google, The Browser Company, Zen or uBlock Origin.</p>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>

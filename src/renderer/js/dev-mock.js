@@ -46,7 +46,7 @@ if (!window.slice) {
     },
     oauth: { signIn: async () => ({ ok: false, code: 'NO_CLIENT_ID', message: 'mock' }), signOut: async () => {} },
     session: { get: async () => ({ tabs: (params.get('tabs') || '').split(',').filter(Boolean).map((u) => ({ url: `https://${u}` })) }), save: () => {} },
-    app: { info: async () => ({ version: '0.1.0', electron: '44.7.2', chrome: '144', platform: 'win32' }), pendingUrls: async () => [], clearData: async () => {}, setDefault: async () => true },
+    app: { info: async () => ({ version: '0.1.0', electron: '44.7.2', chrome: '152', platform: 'win32' }), pendingUrls: async () => [], clearData: async () => {}, setDefault: async () => true },
     win: { overlay: async () => {}, fullscreen: async () => {}, onFullscreen: on('fs'), onFocus: on('focus') },
     downloads: { show: async () => {}, open: async () => {}, onUpdate: on('dl') },
     adblock: { onBlocked: on('blocked'), reset: () => {} },
