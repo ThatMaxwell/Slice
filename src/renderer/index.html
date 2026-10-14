@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://js.puter.com https://*.puter.com; style-src 'self' 'unsafe-inline'; img-src * data: blob:; media-src * blob:; connect-src *; frame-src https://*.puter.com https://puter.com; font-src 'self' data:">
+  <title>Slice</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="booting">
+  <div id="app">
+    <!-- ===== top layout: tab strip ===== -->
+    <header id="tabstrip" class="drag">
+      <div class="strip-start no-drag">
+        <button class="icon-btn" id="btn-layout" title="Sidebar mode (Ctrl+Shift+S)"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg></button>
+      </div>
+      <div id="tabs-h" class="tabs-h no-drag" role="tablist"></div>
+      <button class="icon-btn no-drag new-tab-btn" id="btn-newtab-h" title="New tab (Ctrl+T)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      <div class="strip-fill"></div>
+      <div class="wco-spacer"></div>
+    </header>
+
+    <!-- ===== toolbar / omnibox ===== -->
+    <nav id="toolbar" class="drag">
+      <div class="nav-btns no-drag">
+        <button class="icon-btn" id="btn-back" title="Back (Alt+←)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <button class="icon-btn" id="btn-fwd" title="Forward (Alt+→)"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+        <button class="icon-btn" id="btn-reload" title="Reload (Ctrl+R)"><svg class="i-reload" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg><svg class="i-stop" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <button class="icon-btn" id="btn-home" title="Home"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/></svg></button>
+      </div>
+      <form id="omnibox" class="omnibox no-drag" autocomplete="off">
+        <span class="omni-icon" id="omni-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span>
+        <input id="omni-input" spellcheck="false" placeholder="Search Google or type a URL">
+        <span class="omni-engine" id="omni-engine">Google</span>
+        <div id="omni-suggest" class="omni-suggest" hidden></div>
+      </form>
+      <div class="tool-title" id="tool-title"></div>
+      <div class="tool-btns no-drag">
+        <button class="icon-btn shield" id="btn-shield" title="uBlock Origin"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg><span class="badge" id="shield-count"></span></button>
+        <button class="icon-btn ask" id="btn-assistant" title="Ask about this page (Ctrl+J)"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7z"/></svg></button>
+        <button class="icon-btn" id="btn-menu" title="Settings (Ctrl+,)"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg></button>
+      </div>
+      <div class="wco-spacer"></div>
+    </nav>
+
+    <div id="edge-hot"></div>
+    <div id="body">
+      <!-- ===== sidebar layout ===== -->
+      <aside id="sidebar">
+        <div class="side-top drag">
+          <div class="side-nav no-drag">
+            <button class="icon-btn" data-proxy="btn-back"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <button class="icon-btn" data-proxy="btn-fwd"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+            <button class="icon-btn" data-proxy="btn-reload"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+          </div>
+        </div>
+        <div class="side-omni no-drag" id="side-omni-slot"></div>
+        <div class="side-section-label">Tabs</div>
+        <div id="tabs-v" class="tabs-v" role="tablist"></div>
+        <button class="side-newtab" id="btn-newtab-v"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>New tab</span><kbd>Ctrl T</kbd></button>
+        <div class="side-bottom">
+          <img class="side-logo" src="assets/slice-logo-128.png" alt="">
+          <div class="side-spacer"></div>
+          <button class="icon-btn" data-proxy="btn-layout" title="Top tabs"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18"/></svg></button>
+          <button class="icon-btn" data-proxy="btn-menu" title="Settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+        </div>
+        <div class="side-resize" id="side-resize"></div>
+      </aside>
+
+      <main id="content">
+        <div id="views"></div>
+        <div id="findbar" hidden>
+          <input id="find-input" placeholder="Find in page" spellcheck="false">
+          <span id="find-count"></span>
+          <button class="icon-btn" id="find-prev"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+          <button class="icon-btn" id="find-next"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+          <button class="icon-btn" id="find-close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <div id="loadbar"></div>
+      </main>
+
+      <!-- ===== page assistant (Dia-style "chat with this tab") ===== -->
+      <aside id="assistant" aria-hidden="true">
+        <header class="as-head">
+          <div class="mini-logo sm"></div>
+          <div class="as-title"><b>Ask Slice</b><span id="as-page">this page</span></div>
+          <button class="icon-btn" id="as-clear" title="New chat"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+          <button class="icon-btn" id="as-close" title="Close (Esc)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </header>
+        <div class="as-thread thread" id="as-thread">
+          <div class="as-empty">
+            <div class="mini-logo"></div>
+            <p>I can read this page. Ask me to summarise it, pull out the key bits, compare it, or explain anything.</p>
+            <div class="chips" id="as-chips">
+              <button class="chip">Summarise this page</button>
+              <button class="chip">What are the key takeaways?</button>
+              <button class="chip">Explain it like I'm 12</button>
+            </div>
+          </div>
+        </div>
+        <form class="composer sm" id="as-form">
+          <textarea id="as-input" rows="1" placeholder="Ask about this page…"></textarea>
+          <button class="send" type="submit" title="Send"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </form>
+      </aside>
+    </div>
+  </div>
+
+  <!-- new-tab page template -->
+  <template id="tpl-ntp">
+    <section class="ntp">
+      <div class="ntp-main">
+        <div class="ntp-hero">
+          <div class="mini-logo xl"></div>
+          <h1 class="ntp-greet"></h1>
+        </div>
+        <div class="thread ntp-thread"></div>
+        <form class="composer ntp-composer">
+          <span class="composer-spark"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></span>
+          <textarea rows="1" placeholder="Ask anything, or just say a site…" spellcheck="true"></textarea>
+          <button class="send" type="submit" title="Send (Enter)"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </form>
+        <div class="chips ntp-chips"></div>
+      </div>
+      <aside class="ntp-panel" aria-hidden="true">
+        <header class="panel-head">
+          <div class="panel-q"></div>
+          <div class="seg">
+            <button class="on" data-pane="images">Images</button>
+            <button data-pane="sources">Sources</button>
+          </div>
+          <button class="icon-btn panel-close" title="Hide"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+        </header>
+        <div class="panel-body">
+          <div class="pane pane-images"></div>
+          <div class="pane pane-sources" hidden></div>
+        </div>
+      </aside>
+    </section>
+  </template>
+
+  <div id="overlay-root"></div>
+  <div id="toasts"></div>
+
+  <script src="../shared/config.js"></script>
+  <script src="js/dev-mock.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/markdown.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/tabs.js"></script>
+  <script src="js/ntp.js"></script>
+  <script src="js/assistant.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/onboarding.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

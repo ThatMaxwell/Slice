@@ -1,0 +1,42 @@
+{
+  "name": "slice-browser",
+  "productName": "Slice",
+  "version": "0.1.0",
+  "description": "Slice — an AI-native browser. Say it, Slice does it.",
+  "main": "src/main/main.js",
+  "author": "Slice",
+  "homepage": "https://thatmaxwell.github.io/Slice/",
+  "repository": "https://github.com/ThatMaxwell/Slice",
+  "scripts": {
+    "start": "electron .",
+    "check": "node scripts/check.js",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win nsis portable"
+  },
+  "dependencies": {
+    "@ghostery/adblocker-electron": "^2.20.1"
+  },
+  "devDependencies": {
+    "electron": "^44.7.2",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "app.slice.browser",
+    "productName": "Slice",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "files": ["src/**/*", "assets/brand/**/*", "package.json"],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": ["nsis", "portable"],
+      "artifactName": "Slice-${version}-${arch}-${target}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Slice"
+    },
+    "protocols": [{ "name": "Web", "schemes": ["http", "https"] }],
+    "fileAssociations": [{ "ext": ["html", "htm"], "name": "HTML document", "role": "Viewer" }]
+  }
+}
