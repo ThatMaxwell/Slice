@@ -33,10 +33,10 @@ S.onboarding = (() => {
 
     // bring-your-own-key, tucked away
     const byok = S.el('details', { class: 'ob-byok' },
-      S.el('summary', { text: 'Have your own Gemini key?' }),
+      S.el('summary', { text: 'Have your own AI key?' }),
       S.el('div', { class: 'row gap' },
-        S.el('input', { type: 'password', placeholder: 'Gemini API key (optional)', id: 'ob-key', spellcheck: 'false' })),
-      S.el('p', { class: 'dim', text: 'By default Slice runs Gemini 3.5 Flash-Lite free through Puter.js. Paste a key to use your own quota instead.' }));
+        S.el('input', { type: 'password', placeholder: 'Paste any key — Gemini (AQ. or AIza), OpenAI, Claude, Grok…', id: 'ob-key', spellcheck: 'false' })),
+      S.el('p', { class: 'dim', text: 'By default Slice runs Gemini 3.5 Flash-Lite free through Puter.js. Paste a key and Slice figures out which AI it belongs to.' }));
 
     const tunes = S.el('div', { class: 'tune-grid ob-tunes' });
     const paintTunes = () => S.$$('.tune', tunes).forEach((b) => b.classList.toggle('on', picked.includes(b.dataset.k)));
@@ -52,7 +52,9 @@ S.onboarding = (() => {
       const patch = { onboarded: true, fineTunes: picked };
       for (const k of picked) Object.assign(patch, FINE_TUNES[k].settings || {});
       const key = S.$('#ob-key', root)?.value.trim();
-      if (key) Object.assign(patch, { aiProvider: 'gemini', geminiKey: key });
+      const provider = key && SliceConfig.detectProvider(key);
+      if (provider) { await window.slice.keys.set(provider, key); patch.aiProvider = provider; }
+      else if (key) S.toast('Couldn’t tell which AI that key is for — set it in Settings → AI.', { timeout: 5000 });
       const { settings } = await window.slice.settings.set(patch);
       await S.ai.init(settings);
       root.classList.add('out');

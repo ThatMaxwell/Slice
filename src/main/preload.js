@@ -35,7 +35,13 @@ contextBridge.exposeInMainWorld('slice', {
     stream: (req) => ipcRenderer.send('ai:stream', req),
     abort: (id) => ipcRenderer.send('ai:abort', id),
     warm: (system) => ipcRenderer.invoke('ai:warm', { system }),
+    models: (provider) => ipcRenderer.invoke('ai:models', provider),
+    test: (provider) => ipcRenderer.invoke('ai:test', provider),
     onEvent: on('ai:event'),
+  },
+  keys: {
+    status: () => ipcRenderer.invoke('keys:status'),
+    set: (provider, key) => ipcRenderer.invoke('keys:set', provider, key),
   },
   oauth: {
     signIn: () => ipcRenderer.invoke('oauth:signIn'),

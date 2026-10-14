@@ -43,7 +43,10 @@ if (!window.slice) {
         setTimeout(tick, 300);
       },
       abort: () => {}, warm: async () => false, onEvent: on('ai:event'),
+      models: async () => ({ ok: true, models: [['gemini-3.5-flash-lite', 'Gemini 3.5 Flash-Lite'], ['gemini-3.6-flash', 'Gemini 3.6 Flash']] }),
+      test: async () => ({ ok: true, ms: 412, reply: 'OK' }),
     },
+    keys: { status: async () => ({ gemini: { set: true, type: 'Gemini auth key (AQ.)', hint: 'AQ.A…9xQz' } }), set: async (p, k) => ({ set: !!k, type: 'Gemini auth key (AQ.)', hint: 'AQ.A…9xQz' }) },
     oauth: { signIn: async () => ({ ok: false, code: 'NO_CLIENT_ID', message: 'mock' }), signOut: async () => {} },
     session: { get: async () => ({ tabs: (params.get('tabs') || '').split(',').filter(Boolean).map((u) => ({ url: `https://${u}` })) }), save: () => {} },
     app: { info: async () => ({ version: '0.1.0', electron: '44.7.2', chrome: '152', platform: 'win32' }), pendingUrls: async () => [], clearData: async () => {}, setDefault: async () => true },

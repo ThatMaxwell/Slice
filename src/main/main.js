@@ -5,10 +5,11 @@ const http = require('http');
 const {
   app, BrowserWindow, ipcMain, session, Menu, shell, dialog, nativeTheme, clipboard, webContents,
 } = require('electron');
-const { DEFAULT_SETTINGS, AI_SETTABLE } = require('../shared/config');
+const { DEFAULT_SETTINGS, AI_SETTABLE, AI_PROVIDERS } = require('../shared/config');
 const { createStore } = require('./store');
 const { createMemory } = require('./memory');
 const { createAdblock } = require('./adblock');
+const { createKeys } = require('./keys');
 const search = require('./search');
 const ai = require('./ai');
 const oauth = require('./oauth');
@@ -42,7 +43,7 @@ app.userAgentFallback = app.userAgentFallback.replace(/\s(Electron|slice-browser
 if (!app.requestSingleInstanceLock()) { app.quit(); process.exit(0); }
 
 let win = null;
-let settings, sessionStore, windowStore, memory, adblock;
+let settings, sessionStore, windowStore, memory, adblock, keys;
 const pendingUrls = [];
 
 const urlArg = (argv) => argv.slice(1).find((a) => /^(https?:|file:)/i.test(a) || /\.html?$/i.test(a));
@@ -70,6 +71,16 @@ function sanitizePatch(patch, fromAI) {
       continue;
     }
     if (rule === 'hex color') { if (v === '' || /^#[0-9a-f]{6}$/i.test(v)) out[k] = v; continue; }
+    if (k === 'aiProvider' && fromAI) {
+      // the AI may only switch to a provider that will actually work
+      if (AI_PROVIDERS[v]?.needsKey && !keys.get(v)) continue;
+    }
+    if (k === 'aiModels' || k === 'aiBaseUrls') {
+      if (!v || typeof v !== 'object') continue;
+      out[k] = { ...settings.all[k] };
+      for (const [p, val] of Object.entries(v)) if (AI_PROVIDERS[p] && typeof val === 'string') out[k][p] = val.trim().slice(0, 300);
+      continue;
+    }
     out[k] = v;
   }
   return out;
@@ -333,7 +344,7 @@ function registerIpc() {
   ipcMain.handle('memory:removeFact', (_e, f) => memory.removeFact(f));
   ipcMain.handle('memory:clear', () => memory.clear());
 
-  ipcMain.handle('search:web', (_e, q, opts = {}) => search.web(q, { ...opts, braveKey: settings.all.braveSearchKey }));
+  ipcMain.handle('search:web', (_e, q, opts = {}) => search.web(q, { ...opts, braveKey: keys.get('brave') }));
   ipcMain.handle('search:images', (_e, q, opts) => search.images(q, opts));
   ipcMain.handle('search:fetch', (_e, url) => search.fetchPage(url, { timeout: 5000, maxChars: 9000 }));
 
@@ -384,12 +395,31 @@ function registerIpc() {
     if (isWin) shell.openExternal('ms-settings:defaultapps');
     return app.isDefaultProtocolClient('https');
   });
-  ai.register(ipcMain, () => settings.all);
+  ai.register(ipcMain, () => settings.all, keys);
 }
 
 // ---------------------------------------------------------------------------
 // Boot
 // ---------------------------------------------------------------------------
+// Older builds kept API keys inside settings.json. Move them into the encrypted key vault.
+function migrateSettings() {
+  const s = settings.all;
+  if (s.geminiKey) { keys.set('gemini', s.geminiKey); }
+  if (s.braveSearchKey) keys.set('brave', s.braveSearchKey);
+  if (s.openaiKey) {
+    const p = /openrouter\.ai/.test(s.openaiBaseUrl || '') ? 'openrouter' : 'custom';
+    keys.set(p, s.openaiKey);
+    s.aiModels = { ...(s.aiModels || {}), [p]: s.openaiModel || '' };
+    if (p === 'custom') s.aiBaseUrls = { ...(s.aiBaseUrls || {}), custom: s.openaiBaseUrl || '' };
+    if (s.aiProvider === 'openai') s.aiProvider = p;
+  }
+  if (s.aiModel && s.aiModel !== DEFAULT_SETTINGS.aiModel) s.aiModels = { ...(s.aiModels || {}), gemini: s.aiModel };
+  for (const k of Object.keys(s)) if (!(k in DEFAULT_SETTINGS)) delete s[k];
+  for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) if (!(k in s)) s[k] = structuredClone(v);
+  if (!AI_PROVIDERS[s.aiProvider]) s.aiProvider = 'puter';
+  settings.save();
+}
+
 app.on('second-instance', (_e, argv) => {
   const u = urlArg(argv);
   if (u) send('tab:open', { url: u });
@@ -411,8 +441,8 @@ app.on('web-contents-created', (_e, wc) => {
 
 app.whenReady().then(async () => {
   settings = createStore('settings', DEFAULT_SETTINGS);
-  // fill any keys added in newer versions
-  for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) if (!(k in settings.all)) settings.all[k] = v;
+  keys = createKeys();
+  migrateSettings();
   sessionStore = createStore('session', { tabs: [], googleRefresh: '' });
   windowStore = createStore('window', {});
   memory = createMemory();
@@ -448,6 +478,7 @@ app.on('open-url', (e, url) => { e.preventDefault(); if (win) send('tab:open', {
 app.on('window-all-closed', () => { if (!isMac) app.quit(); });
 app.on('before-quit', () => {
   memory?.flush();
+  keys?.flush();
   settings?.flushNow();
   sessionStore?.flushNow();
   windowStore?.flushNow();

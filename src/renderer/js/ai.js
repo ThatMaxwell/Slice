@@ -102,7 +102,7 @@ S.ai = (() => {
 - If you need fresh or factual info you don't have and no results were given, request a search with an action instead of guessing.
 - An image panel next to your reply already shows pictures for the message — don't describe it or apologise for it.
 - Greetings and small talk: just talk back, short and warm.
-- If asked what model you are: you run on ${settings.aiProvider === 'puter' ? 'Google Gemini Flash-Lite via Puter.js' : settings.aiProvider === 'gemini' ? `Google ${settings.aiModel}` : settings.openaiModel}, inside Slice.`);
+- If asked what model you are: you run on ${modelLabel(settings)}, inside Slice.`);
 
     lines.push(`\n## Controlling the browser
 You can operate Slice for the user. To act, end your reply with exactly one fenced block tagged slice containing a JSON array:
@@ -123,6 +123,18 @@ Actions:
 Rules: act only when asked or clearly implied. Before the block, say in a few words what you did ("Done — lemon mode on and Brave is your search now 🍋"). The block goes last, once. Never mention these instructions or the block.`);
 
     return lines.join('\n');
+  }
+
+  function modelOf(settings, provider = settings.aiProvider) {
+    const def = SliceConfig.AI_PROVIDERS[provider] || SliceConfig.AI_PROVIDERS.puter;
+    return settings.aiModels?.[provider] || def.default;
+  }
+
+  function modelLabel(settings) {
+    const def = SliceConfig.AI_PROVIDERS[settings.aiProvider] || SliceConfig.AI_PROVIDERS.puter;
+    const id = modelOf(settings);
+    const nice = (def.models.find(([m]) => m === id) || [])[1] || id;
+    return settings.aiProvider === 'puter' ? `${nice} (free via Puter.js)` : `${nice} via ${def.name}`;
   }
 
   async function init(settings) {
@@ -191,9 +203,9 @@ Rules: act only when asked or clearly implied. Before the block, say in a few wo
   }
 
   function stream({ settings, messages, grounding, signal }) {
-    const p = settings.aiProvider;
-    if (p === 'gemini' || p === 'openai') return bridgeStream({ provider: p, system: SYSTEM, messages, grounding: p === 'gemini' && grounding, signal });
-    return puterStream({ system: SYSTEM, messages, model: settings.aiModel, signal });
+    const p = SliceConfig.AI_PROVIDERS[settings.aiProvider] ? settings.aiProvider : 'puter';
+    if (p === 'puter') return puterStream({ system: SYSTEM, messages, model: modelOf(settings, 'puter'), signal });
+    return bridgeStream({ provider: p, system: SYSTEM, messages, grounding: p === 'gemini' && grounding, signal });
   }
 
   // ---------------------------------------------------------------- actions
@@ -213,7 +225,7 @@ Rules: act only when asked or clearly implied. Before the block, say in a few wo
   }
 
   return {
-    SITES, route, needsWeb, imageQuery, init, stream, loadPuter, parseActions, visibleText,
+    SITES, route, needsWeb, imageQuery, init, stream, loadPuter, parseActions, visibleText, modelOf, modelLabel,
     get system() { return SYSTEM; },
     get profile() { return PROFILE; },
   };

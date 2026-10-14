@@ -196,10 +196,11 @@ S.Chat = class Chat {
       if (ctrl.signal.aborted) return;
       const msg = String(e.message || e);
       const hint = settings.aiProvider === 'puter'
-        ? 'Slice’s free AI runs on Puter.js — a sign-in window may need you to log in once. You can also add your own Gemini key in Settings → AI.'
-        : 'Check your API key in Settings → AI.';
+        ? 'Slice’s free AI runs on Puter.js — a sign-in window may need you to log in once. Or paste your own key (Gemini, OpenAI, Claude, Grok…) in Settings → AI.'
+        : 'Check the key and model in Settings → AI — the **Test** button tells you exactly what’s wrong.';
       ui.finish(`**Couldn’t reach the AI.** ${msg}\n\n${hint}`);
       ui.el.classList.add('error');
+      ui.done.append(S.el('button', { class: 'done-chip', text: 'AI settings', onclick: () => S.settingsUI.open('ai') }));
       ui.done.append(S.el('button', { class: 'done-chip btn-retry', text: 'Try again', onclick: () => { ui.el.remove(); this.thread.lastElementChild?.classList.contains('user') && this.thread.lastElementChild.remove(); this.send(text); } }));
     } finally {
       if (this.busy === ctrl) this.busy = null;

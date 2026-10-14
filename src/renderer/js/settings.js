@@ -1,6 +1,6 @@
 // Settings: everything is customisable, and every change applies instantly.
 S.settingsUI = (() => {
-  const { THEMES, SEARCH_ENGINES, FINE_TUNES, DEFAULT_MODEL } = SliceConfig;
+  const { THEMES, SEARCH_ENGINES, FINE_TUNES, AI_PROVIDERS, detectProvider } = SliceConfig;
   let root = null;
   let section = 'look';
   const set = (patch) => window.slice.settings.set(patch);
@@ -101,36 +101,113 @@ S.settingsUI = (() => {
     ];
   }
 
-  function buildAI() {
+  async function buildAI() {
     const s = cur();
-    const tunes = S.el('div', { class: 'tune-grid' });
+    const status = await window.slice.keys.status();
+    const p = AI_PROVIDERS[s.aiProvider] ? s.aiProvider : 'puter';
+    const def = AI_PROVIDERS[p];
+
+    // paste-anything key box
+    const quick = S.el('input', { type: 'password', placeholder: 'Paste any AI key — Slice figures out whose it is', spellcheck: 'false' });
+    quick.addEventListener('change', async () => {
+      const key = quick.value.trim();
+      const prov = detectProvider(key);
+      if (!prov) { S.toast('Couldn’t tell which AI that key belongs to — pick the provider below and paste it there.', { timeout: 5000 }); return; }
+      const st = await window.slice.keys.set(prov, key);
+      await set({ aiProvider: prov });
+      S.toast(`${st?.type || 'Key'} saved — now using ${AI_PROVIDERS[prov].name}`, { icon: '✓' });
+      render();
+    });
+
+    const grid = S.el('div', { class: 'prov-grid' });
+    for (const [k, d] of Object.entries(AI_PROVIDERS)) {
+      const ready = !d.needsKey || status[k]?.set;
+      grid.append(S.el('button', { class: `prov${k === p ? ' on' : ''}${ready ? ' ready' : ''}`, onclick: () => set({ aiProvider: k }) },
+        S.el('span', { class: 'prov-ico', text: d.name[0] }),
+        S.el('b', { text: d.name }),
+        S.el('span', { class: 'prov-tag', text: d.tag || (status[k]?.set ? 'Key saved' : d.needsKey ? 'Needs key' : 'Key optional') })));
+    }
+
+    // selected provider
+    const rows = [];
+    if (def.needsKey || p === 'custom') {
+      const st = status[p];
+      const keyIn = S.el('input', { type: 'password', placeholder: st?.set ? `${st.hint} — paste to replace` : def.keyHint || 'API key', spellcheck: 'false' });
+      keyIn.addEventListener('change', async () => {
+        const r = await window.slice.keys.set(p, keyIn.value);
+        S.toast(r?.set ? `${r.type} saved` : 'Key removed', { icon: '✓' });
+        render();
+      });
+      rows.push(row(`${def.name} key`, st?.set ? `${st.type} · ${st.hint} · encrypted on this device` : 'Stored encrypted on this device, never sent anywhere but the provider.',
+        S.el('div', { class: 'row gap' }, keyIn,
+          def.keyUrl ? button('Get a key ↗', () => { S.app.openTab(def.keyUrl); close(); }, 'ghost sm') : null,
+          st?.set ? button('Remove', async () => { await window.slice.keys.set(p, ''); render(); }, 'ghost sm') : null)));
+    }
+    if (def.kind === 'openai' && ['ollama', 'lmstudio', 'custom'].includes(p)) {
+      const base = S.el('input', { type: 'text', placeholder: def.base || 'https://example.com/v1', spellcheck: 'false' });
+      base.value = s.aiBaseUrls?.[p] || def.base || '';
+      base.addEventListener('change', () => set({ aiBaseUrls: { [p]: base.value.trim() } }));
+      rows.push(row('Base URL', 'OpenAI-compatible endpoint (ends in /v1).', base));
+    }
+    const listId = `models-${p}`;
+    const model = S.el('input', { type: 'text', list: listId, placeholder: def.default || 'model id', spellcheck: 'false' });
+    model.value = s.aiModels?.[p] || def.default || '';
+    model.addEventListener('change', () => set({ aiModels: { [p]: model.value.trim() } }));
+    const dl = S.el('datalist', { id: listId }, ...def.models.map(([id, name]) => S.el('option', { value: id, text: name })));
+    const loadBtn = button('Load models', async () => {
+      loadBtn.textContent = 'Loading…';
+      const r = await window.slice.ai.models(p);
+      loadBtn.textContent = 'Load models';
+      if (!r.ok) { S.toast(r.error, { timeout: 6000 }); return; }
+      dl.replaceChildren(...r.models.map(([id, name]) => S.el('option', { value: id, text: name })));
+      S.toast(`${r.models.length} models available — click the model box to pick one`);
+      model.focus();
+    }, 'ghost sm');
+    rows.push(row('Model', p === 'puter' ? 'Free through Puter: Gemini, Claude, GPT, Grok, DeepSeek, Mistral, Qwen…' : `Default: ${def.default || '—'}`,
+      S.el('div', { class: 'row gap' }, model, dl, p !== 'puter' ? loadBtn : null)));
+    if (p !== 'puter') {
+      const out = S.el('span', { class: 'test-out' });
+      const testBtn = button('Test connection', async () => {
+        out.className = 'test-out'; out.textContent = 'Testing…';
+        const r = await window.slice.ai.test(p);
+        out.className = `test-out ${r.ok ? 'ok' : 'bad'}`;
+        out.textContent = r.ok ? `✓ Works — answered in ${r.ms} ms` : `✗ ${r.error}`;
+      }, 'primary sm');
+      rows.push(S.el('div', { class: 'test-row' }, testBtn, out));
+    }
+    if (p === 'gemini') rows.push(toggle('geminiGrounding', 'Google Search grounding', 'Let Gemini answer with live Google results (cites sources).'));
+
+    const brave = S.el('input', { type: 'password', placeholder: status.brave?.set ? status.brave.hint : 'BSA…', spellcheck: 'false' });
+    brave.addEventListener('change', async () => { await window.slice.keys.set('brave', brave.value); render(); });
+
+    return [
+      row('Quick add', 'Gemini (AQ. or AIza), OpenAI, Anthropic, xAI, Groq, OpenRouter…', quick, 'stack-sm'),
+      S.el('h3', { text: 'Provider' }),
+      grid,
+      S.el('p', { class: 'set-note', text: def.blurb }),
+      ...rows,
+      S.el('h3', { text: 'Behaviour' }),
+      seg('aiWebSearch', 'Web search', 'Auto searches when you ask about news, facts or “is … true?”. Eager searches any question.', [['auto', 'Auto'], ['eager', 'Eager'], ['off', 'Off']]),
+      toggle('imagesPanel', 'Results panel', 'Show images and sources on the right for every prompt.'),
+      row('Brave Search API key', 'Optional: faster, more reliable web results for the AI.', brave),
+      S.el('h3', { text: 'Fine-tunes' }),
+      S.el('p', { class: 'set-note', text: 'Mix and match Slice’s personality. Changes apply on the next launch, or press “Reload AI”.' }),
+      tunes(s),
+      text('customInstructions', 'Your instructions', 'Anything Slice should always know or do.', { area: true, placeholder: 'e.g. I’m in Lisbon. Keep answers under 5 lines. Metric units.' }),
+      S.el('div', { class: 'row gap' }, button('Reload AI', async () => { await S.ai.init(cur()); S.toast(`AI reloaded — ${S.ai.modelLabel(cur())}`, { icon: '✦' }); }, 'primary')),
+    ];
+  }
+
+  function tunes(s) {
+    const box = S.el('div', { class: 'tune-grid' });
     for (const [k, t] of Object.entries(FINE_TUNES)) {
       const on = s.fineTunes.includes(k);
-      tunes.append(S.el('button', {
+      box.append(S.el('button', {
         class: `tune${on ? ' on' : ''}`,
         onclick: () => set({ fineTunes: on ? s.fineTunes.filter((x) => x !== k) : [...s.fineTunes, k] }),
       }, S.el('span', { class: 'tune-icon', text: t.icon }), S.el('b', { text: t.name }), S.el('span', { text: t.blurb })));
     }
-    const p = s.aiProvider;
-    return [
-      S.el('h3', { text: 'Engine' }),
-      seg('aiProvider', 'Provider', 'Puter.js is free and needs no key. Or bring your own.', [['puter', 'Puter.js (free)'], ['gemini', 'Gemini key'], ['openai', 'OpenAI-compatible']]),
-      p !== 'openai' ? text('aiModel', 'Model', `Default: ${DEFAULT_MODEL} — Google’s latest Flash-Lite.`, { placeholder: DEFAULT_MODEL }) : null,
-      p === 'gemini' ? text('geminiKey', 'Gemini API key', 'From aistudio.google.com — stored only on this device.', { type: 'password', placeholder: 'AIza…' }) : null,
-      p === 'gemini' ? toggle('geminiGrounding', 'Google Search grounding', 'Let Gemini answer with live Google results (cites sources).') : null,
-      p === 'openai' ? text('openaiBaseUrl', 'Base URL', 'OpenRouter, Groq, Together, LM Studio, Ollama…', { placeholder: 'https://openrouter.ai/api/v1' }) : null,
-      p === 'openai' ? text('openaiKey', 'API key', null, { type: 'password', placeholder: 'sk-…' }) : null,
-      p === 'openai' ? text('openaiModel', 'Model', null, { placeholder: 'google/gemini-3.5-flash-lite' }) : null,
-      S.el('h3', { text: 'Behaviour' }),
-      seg('aiWebSearch', 'Web search', 'Auto searches when you ask about news, facts or “is … true?”. Eager searches any question.', [['auto', 'Auto'], ['eager', 'Eager'], ['off', 'Off']]),
-      toggle('imagesPanel', 'Results panel', 'Show images and sources on the right for every prompt.'),
-      text('braveSearchKey', 'Brave Search API key', 'Optional: faster, more reliable web results for the AI.', { type: 'password', placeholder: 'BSA…' }),
-      S.el('h3', { text: 'Fine-tunes' }),
-      S.el('p', { class: 'set-note', text: 'Mix and match Slice’s personality. Changes apply on the next launch, or press “Reload AI”.' }),
-      tunes,
-      text('customInstructions', 'Your instructions', 'Anything Slice should always know or do.', { area: true, placeholder: 'e.g. I’m in Lisbon. Keep answers under 5 lines. Metric units.' }),
-      S.el('div', { class: 'row gap' }, button('Reload AI', async () => { await S.ai.init(cur()); S.toast('AI reloaded with your latest settings & memory', { icon: '✦' }); }, 'primary')),
-    ];
+    return box;
   }
 
   async function buildMemory() {
