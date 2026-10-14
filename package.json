@@ -1,8 +1,8 @@
 {
   "name": "slice-browser",
   "productName": "Slice",
-  "version": "0.1.0",
-  "description": "Slice \u2014 an AI-native browser. Say it, Slice does it.",
+  "version": "0.1.1",
+  "description": "Slice — an AI-native browser. Say it, Slice does it.",
   "main": "src/main/main.js",
   "author": "Slice",
   "homepage": "https://thatmaxwell.github.io/Slice/",

@@ -1,5 +1,6 @@
 // Fast web + image search for the AI, run from the main process (no CORS, no tracking cookies).
 // Only reads what's needed: a handful of results and a short slice of the top pages.
+const { httpFetch, discard } = require('./http');
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36';
 const HEADERS = { 'User-Agent': UA, 'Accept-Language': 'en-US,en;q=0.9' };
 
@@ -14,8 +15,8 @@ const stripTags = (s) => decode(String(s || '').replace(/<[^>]+>/g, '')).replace
 const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
 
 async function get(url, { timeout = 4000, headers = {} } = {}) {
-  const res = await fetch(url, { headers: { ...HEADERS, ...headers }, signal: AbortSignal.timeout(timeout), redirect: 'follow' });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const res = await httpFetch(url, { headers: { ...HEADERS, ...headers }, signal: AbortSignal.timeout(timeout), redirect: 'follow' });
+  if (!res.ok) { await discard(res); throw new Error(`HTTP ${res.status}`); }
   return res;
 }
 
@@ -71,16 +72,19 @@ function readable(html, maxChars) {
 async function fetchPage(url, { timeout = 3500, maxChars = 6000 } = {}) {
   const res = await get(url, { timeout, headers: { Accept: 'text/html,application/xhtml+xml,text/plain' } });
   const type = res.headers.get('content-type') || '';
-  if (!/text\/html|text\/plain|xml/.test(type)) return { url, title: host(url), text: `[${type || 'binary'} content]` };
+  if (!/text\/html|text\/plain|xml/.test(type)) { await discard(res); return { url, title: host(url), text: `[${type || 'binary'} content]` }; }
   // never download giant pages: cap at ~1.5MB
   const reader = res.body.getReader();
   const chunks = []; let size = 0;
-  while (size < 1_500_000) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value); size += value.length;
+  try {
+    while (size < 1_500_000) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value); size += value.length;
+    }
+  } finally {
+    reader.cancel().catch(() => {});
   }
-  reader.cancel().catch(() => {});
   const html = Buffer.concat(chunks).toString('utf8');
   const r = /text\/plain/.test(type) ? { title: host(url), text: html.slice(0, maxChars) } : readable(html, maxChars);
   return { url, ...r };

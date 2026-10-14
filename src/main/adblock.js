@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs/promises');
 const { app } = require('electron');
 const { ElectronBlocker } = require('@ghostery/adblocker-electron');
+const { httpFetch } = require('./http');
 
 const UBO_LISTS = [
   'https://ublockorigin.github.io/uAssets/filters/filters.min.txt',
@@ -33,12 +34,12 @@ function createAdblock(onBlocked) {
       try { return ElectronBlocker.deserialize(new Uint8Array(await fs.readFile(cache))); } catch { /* rebuild */ }
     }
     try {
-      const b = await ElectronBlocker.fromLists(fetch, UBO_LISTS, { enableCompression: true, loadNetworkFilters: true, loadCosmeticFilters: true });
+      const b = await ElectronBlocker.fromLists(httpFetch, UBO_LISTS, { enableCompression: true, loadNetworkFilters: true, loadCosmeticFilters: true });
       fs.writeFile(cache, b.serialize()).catch(() => {});
       return b;
     } catch {
       // offline first run: fall back to Ghostery's prebuilt ads+tracking engine (same list families)
-      return ElectronBlocker.fromPrebuiltAdsAndTracking(fetch);
+      return ElectronBlocker.fromPrebuiltAdsAndTracking(httpFetch);
     }
   }
 

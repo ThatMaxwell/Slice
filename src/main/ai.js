@@ -3,6 +3,7 @@
 // (Puter.js — the default, free provider — runs in the browser UI itself.)
 const crypto = require('crypto');
 const { AI_PROVIDERS } = require('../shared/config');
+const { httpFetch, discard } = require('./http');
 
 const GEMINI = 'https://generativelanguage.googleapis.com/v1beta';
 const running = new Map(); // id -> AbortController
@@ -12,7 +13,8 @@ async function* sse(res) {
   const reader = res.body.getReader();
   const dec = new TextDecoder();
   let buf = '';
-  for (;;) {
+  // the finally block closes the stream even when we stop early ([DONE], abort, error)
+  try { for (;;) {
     const { done, value } = await reader.read();
     if (done) break;
     buf += dec.decode(value, { stream: true });
@@ -25,6 +27,8 @@ async function* sse(res) {
       if (data === '[DONE]') return;
       try { yield JSON.parse(data); } catch { /* partial */ }
     }
+  } } finally {
+    reader.cancel().catch(() => {});
   }
 }
 
@@ -68,12 +72,13 @@ async function geminiFetch(path, key, init = {}) {
     if (style === 'header') headers['x-goog-api-key'] = key;
     else if (style === 'bearer') headers.Authorization = `Bearer ${key}`;
     else url.searchParams.set('key', key);
-    const res = await fetch(url, { ...init, headers });
+    const res = await httpFetch(url, { ...init, headers });
     if (res.ok) { geminiAuthStyle.set(id, style); return res; }
-    last = res;
+    // read the error fully (never leave a body hanging), keep it for the caller
+    const body = await res.text().catch(() => '');
+    last = new Response(body, { status: res.status, statusText: res.statusText });
     if (![400, 401, 403].includes(res.status)) break;
-    const peek = await res.clone().text().catch(() => '');
-    if (!/key|credential|auth|unauthenticated|permission/i.test(peek)) break;
+    if (!/key|credential|auth|unauthenticated|permission/i.test(body)) break;
   }
   return last;
 }
@@ -93,7 +98,7 @@ async function warmGeminiCache({ key, model, system }) {
       signal: AbortSignal.timeout(8000),
     });
     // usually "too few tokens to cache" — implicit prefix caching still applies
-    if (!res.ok) { promptCache.unsupported.add(id); return null; }
+    if (!res.ok) { await discard(res); promptCache.unsupported.add(id); return null; }
     const j = await res.json();
     Object.assign(promptCache, { hash, name: j.name, expires: Date.now() + 3500_000 });
     return j.name;
@@ -142,7 +147,7 @@ async function streamGemini({ key, model, system, messages, grounding, signal, o
 // ---------------------------------------------------------------- Anthropic
 async function streamAnthropic({ key, model, system, messages, signal, onText }) {
   const msgs = messages.filter((m) => m.role !== 'system').map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content) }));
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+  const res = await httpFetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
     // the system prompt is marked cacheable, so it's only processed in full once
@@ -161,7 +166,7 @@ async function streamOpenAI({ provider, baseUrl, key, model, system, messages, s
   const headers = { 'Content-Type': 'application/json' };
   if (key) headers.Authorization = `Bearer ${key}`;
   if (provider === 'openrouter') Object.assign(headers, { 'HTTP-Referer': 'https://thatmaxwell.github.io/Slice/', 'X-Title': 'Slice Browser' });
-  const res = await fetch(`${baseUrl}/chat/completions`, {
+  const res = await httpFetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ model, stream: true, messages: [{ role: 'system', content: system }, ...messages.filter((m) => m.role !== 'system')] }),
@@ -222,12 +227,12 @@ async function listModels(provider, settings, keys) {
       .map((m) => [bareModel(m.name), m.displayName || bareModel(m.name)]);
   }
   if (def.kind === 'anthropic') {
-    const res = await fetch('https://api.anthropic.com/v1/models?limit=100', { headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' }, signal: sig });
+    const res = await httpFetch('https://api.anthropic.com/v1/models?limit=100', { headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' }, signal: sig });
     if (!res.ok) throw new Error(friendly(provider, res.status, await errorText(res)));
     return ((await res.json()).data || []).map((m) => [m.id, m.display_name || m.id]);
   }
   const base = String(settings.aiBaseUrls?.[provider] || def.base || '').replace(/\/+$/, '');
-  const res = await fetch(`${base}/models`, { headers: key ? { Authorization: `Bearer ${key}` } : {}, signal: sig });
+  const res = await httpFetch(`${base}/models`, { headers: key ? { Authorization: `Bearer ${key}` } : {}, signal: sig });
   if (!res.ok) throw new Error(friendly(provider, res.status, await errorText(res)));
   return ((await res.json()).data || []).map((m) => [m.id, m.name || m.id]).sort((a, b) => a[0].localeCompare(b[0]));
 }

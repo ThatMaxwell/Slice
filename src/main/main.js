@@ -14,6 +14,21 @@ const search = require('./search');
 const ai = require('./ai');
 const oauth = require('./oauth');
 
+// Safety net: a failure in background work (a flaky site, a dropped connection, a bad API reply)
+// must never put an error dialog in front of the user or take the browser down. Log it instead.
+function logError(kind, err) {
+  const line = `[${new Date().toISOString()}] ${kind}: ${err?.stack || err}\n`;
+  console.error(line);
+  try {
+    const file = path.join(app.getPath('userData'), 'logs', 'main.log');
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    if (fs.existsSync(file) && fs.statSync(file).size > 1_000_000) fs.renameSync(file, `${file}.old`);
+    fs.appendFileSync(file, line);
+  } catch { /* logging must never throw */ }
+}
+process.on('uncaughtException', (e) => logError('uncaughtException', e));
+process.on('unhandledRejection', (e) => logError('unhandledRejection', e));
+
 const isMac = process.platform === 'darwin';
 const isWin = process.platform === 'win32';
 
