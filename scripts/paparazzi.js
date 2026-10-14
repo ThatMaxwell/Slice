@@ -33,7 +33,7 @@ const DEVICES = {
   ipad: { viewport: { width: 820, height: 1180 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true },
 };
 
-const SITE_SECTIONS = ['top', 'features', 'any-ai', 'customize', 'glass', 'privacy', 'download'];
+const SITE_SECTIONS = ['top', 'features', 'any-ai', 'customize', 'glass', 'privacy', 'lineup', 'download'];
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.json': 'application/json' };
 function serve() {
@@ -65,7 +65,9 @@ async function overflow(page) {
 async function main() {
   fs.mkdirSync(OUT, { recursive: true });
   const { server, base } = await serve();
-  const browser = await chromium.launch(process.env.PAPARAZZI_CHROME ? { executablePath: process.env.PAPARAZZI_CHROME } : {});
+  // let the intro's chime autoplay so the boot sequence runs straight through (no skipping on the real site)
+  const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'], ...(process.env.PAPARAZZI_CHROME ? { executablePath: process.env.PAPARAZZI_CHROME } : {}) });
+  const waitForIntro = (page) => page.waitForFunction(() => !document.getElementById('boot'), null, { timeout: 30000 });
   const shots = [];
   const problems = [];
   const snap = async (page, name) => {
@@ -84,9 +86,8 @@ async function main() {
     const errors = [];
     page.on('pageerror', (e) => errors.push(String(e)));
     await page.goto(`${base}/docs/`);
-    await page.waitForTimeout(400);
-    await page.click('#skip');
-    await page.waitForTimeout(2600);
+    await waitForIntro(page);
+    await page.waitForTimeout(1500);
     await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' });
     for (const id of SITE_SECTIONS) {
       await page.evaluate((s) => { const el = s === 'top' ? null : document.getElementById(s); window.scrollTo(0, el ? el.getBoundingClientRect().top + scrollY - 70 : 0); }, id);
@@ -104,9 +105,8 @@ async function main() {
     const ctx = await browser.newContext(DEVICES['iphone-duo-folded']);
     const page = await ctx.newPage();
     await page.goto(`${base}/docs/`);
-    await page.waitForTimeout(300);
-    await page.click('#skip');
-    await page.waitForTimeout(2000);
+    await waitForIntro(page);
+    await page.waitForTimeout(800);
     await page.setViewportSize(DEVICES['iphone-duo-unfolded'].viewport);
     await page.waitForTimeout(1500);
     await snap(page, 'site-iphone-duo-unfold-live');

@@ -82,8 +82,12 @@ h1, h2, h3, h4 { font-family: var(--display); color: var(--ink); font-weight: 65
 .eq i:nth-child(2) { animation-delay: .2s; }
 .eq i:nth-child(3) { animation-delay: .4s; }
 @keyframes eq { 50% { transform: scaleY(.35); } }
-.skip { position: absolute; bottom: max(24px, env(safe-area-inset-bottom)); right: max(24px, env(safe-area-inset-right)); font: 500 12px var(--sans); letter-spacing: .04em; color: rgba(255, 255, 255, .4); padding: 10px; }
-.skip:hover { color: #fff; }
+#boot.await-tap { cursor: pointer; }
+#boot.await-tap .sound-chip { animation: chip-in .6s var(--ease) both, breathe 2.4s ease-in-out .6s infinite; }
+#boot.await-tap .boot-white { animation: glow 2.4s ease-in-out infinite; }
+@keyframes chip-in { from { opacity: 0; transform: translate(-50%, 8px); } }
+@keyframes breathe { 50% { background: rgba(255, 255, 255, .16); } }
+@keyframes glow { 50% { filter: drop-shadow(0 0 46px rgba(120, 200, 255, .55)); } }
 
 /* ------------------------------------------------------------------ chrome */
 .progress { position: fixed; left: 0; top: 0; height: 3px; width: 100%; z-index: 60; background: var(--brand); transform-origin: 0 50%; transform: scaleX(0); }
@@ -479,7 +483,8 @@ input[type=range] { width: 100%; accent-color: var(--sky); height: 28px; }
 .lu-art.a1 img { width: 108px; filter: drop-shadow(0 18px 30px rgba(20, 80, 160, .3)); animation: float 6s ease-in-out infinite; }
 @keyframes float { 50% { transform: translateY(-8px); } }
 .lu-art.a2 { background: linear-gradient(160deg, #e7f8ee, #c9f0dc); }
-.lu-art.a3 { background: linear-gradient(160deg, #e6f6ff, #cdeefb); }
+.lu-art.a3 { background: linear-gradient(160deg, #f6fbff, #e3f1ff 60%, #d8f4fb); }
+.lu-art.a3 img { width: 104px; filter: drop-shadow(0 18px 30px rgba(20, 100, 200, .28)); animation: float 6s ease-in-out infinite; }
 .lu-art.a4 { background: linear-gradient(160deg, #fff1e3, #ffd7c2 60%, #e9ddff); }
 .phone { width: 78px; height: 148px; border-radius: 20px; background: #0c1220; border: 3px solid #1e2738; display: grid; place-items: center; color: #fff; box-shadow: 0 20px 30px -10px rgba(12, 18, 32, .4); }
 .tile { width: 84px; height: 84px; border-radius: 24px; display: grid; place-items: center; color: #fff; box-shadow: 0 18px 30px -10px rgba(12, 18, 32, .35); }
@@ -487,7 +492,7 @@ input[type=range] { width: 100%; accent-color: var(--sky); height: 28px; }
 .tile.pro { background: conic-gradient(from 210deg, #0c1220, #3a2f5c, #ff8a3d, #2f7bff, #0c1220); }
 .mini-mark { width: 34px; height: 34px; display: block; }
 .badge { align-self: flex-start; font-size: 12.5px; font-weight: 600; padding: 4px 10px; border-radius: 8px; background: var(--bg-2); color: var(--muted); }
-.badge.live { background: #e7f8ee; color: #15803d; }
+.badge.badge-live { background: #e7f8ee; color: #15803d; }
 .lu h3 { font-size: 22px; letter-spacing: -.03em; margin-top: 6px; }
 .lu p { margin: 0 0 6px; color: var(--muted); font-size: 15.5px; }
 .lu .btn { align-self: flex-start; margin-top: 6px; }
@@ -498,6 +503,7 @@ input[type=range] { width: 100%; accent-color: var(--sky); height: 28px; }
 .dl-card h2 { font-size: clamp(46px, 8vw, 92px); }
 .dl-card > p { color: #33415c; font-size: 19px; margin: 10px 0 28px; }
 .dl-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.dl-card .dl-note { margin: 18px auto 0; max-width: 520px; font-size: 14px; color: #4a5a78; }
 .dl-card .dl-soon { margin: 22px 0 0; font-size: 15px; color: #4a5a78; }
 
 /* faq */
@@ -589,3 +595,10 @@ input[type=range] { width: 100%; accent-color: var(--sky); height: 28px; }
   .reveal { opacity: 1; transform: none; }
   .hero-title .line > span { transform: none; }
 }
+
+/* download toast */
+.dl-toast { position: fixed; z-index: 70; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); transform: translate(-50%, 20px); display: flex; align-items: center; gap: 12px; padding: 12px 18px 12px 12px; border-radius: 18px; background: #fff; border: 1px solid var(--line); box-shadow: var(--shadow-lg); opacity: 0; pointer-events: none; transition: opacity .3s var(--ease), transform .4s var(--spring); max-width: calc(100% - 2 * var(--gutter)); }
+.dl-toast.on { opacity: 1; transform: translate(-50%, 0); }
+.dl-toast img { width: 36px; height: 36px; flex: none; }
+.dl-toast b { display: block; color: var(--ink); font-size: 15px; }
+.dl-toast span { font-size: 13.5px; color: var(--muted); }

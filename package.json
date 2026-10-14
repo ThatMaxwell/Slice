@@ -39,14 +39,14 @@
       "target": [
         "nsis",
         "portable"
-      ],
-      "artifactName": "Slice-${version}-${arch}-${target}.${ext}"
+      ]
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "Slice"
+      "shortcutName": "Slice",
+      "artifactName": "Slice-Setup.exe"
     },
     "protocols": [
       {
@@ -66,6 +66,9 @@
         "name": "HTML document",
         "role": "Viewer"
       }
-    ]
+    ],
+    "portable": {
+      "artifactName": "Slice-Portable.exe"
+    }
   }
 }

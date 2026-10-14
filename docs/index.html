@@ -49,8 +49,7 @@
       <img class="boot-color" src="assets/slice-logo.webp" alt="">
       <div class="boot-ring"></div>
     </div>
-    <button class="sound-chip" id="sound-chip" hidden><span class="eq"><i></i><i></i><i></i></span> Tap for sound</button>
-    <button class="skip" id="skip">Skip intro</button>
+    <div class="sound-chip" id="sound-chip" hidden><span class="eq"><i></i><i></i><i></i></span> Tap anywhere to begin</div>
   </div>
 
   <div class="progress" id="progress"></div>
@@ -68,7 +67,7 @@
       <a href="#privacy">Privacy</a>
       <a href="#lineup">Lineup</a>
     </nav>
-    <a class="btn btn-dark btn-sm nav-cta" href="#download"><svg viewBox="0 0 24 24" class="win"><path d="M3 5.5l7.5-1v7H3zM3 12.5h7.5v7L3 18.5zM11.5 4.4L21 3v8.5h-9.5zM11.5 12.5H21V21l-9.5-1.4z"/></svg>Download</a>
+    <a class="btn btn-dark btn-sm nav-cta" href="https://github.com/ThatMaxwell/Slice/releases/latest/download/Slice-Setup.exe" data-dl><svg viewBox="0 0 24 24" class="win"><path d="M3 5.5l7.5-1v7H3zM3 12.5h7.5v7L3 18.5zM11.5 4.4L21 3v8.5h-9.5zM11.5 12.5H21V21l-9.5-1.4z"/></svg>Download</a>
     <button class="menu-btn" id="menu-btn" aria-label="Menu" aria-expanded="false"><i></i><i></i></button>
   </header>
 
@@ -83,7 +82,7 @@
         </h1>
         <p class="hero-sub reveal">The AI-native browser that searches, answers, opens sites and restyles itself — from one bar. Any AI you like. Blink fast. uBlock Origin built in.</p>
         <div class="hero-ctas reveal">
-          <a class="btn btn-dark btn-lg" href="#download"><svg viewBox="0 0 24 24" class="win"><path d="M3 5.5l7.5-1v7H3zM3 12.5h7.5v7L3 18.5zM11.5 4.4L21 3v8.5h-9.5zM11.5 12.5H21V21l-9.5-1.4z"/></svg>Download for Windows</a>
+          <a class="btn btn-dark btn-lg" href="https://github.com/ThatMaxwell/Slice/releases/latest/download/Slice-Setup.exe" data-dl><svg viewBox="0 0 24 24" class="win"><path d="M3 5.5l7.5-1v7H3zM3 12.5h7.5v7L3 18.5zM11.5 4.4L21 3v8.5h-9.5zM11.5 12.5H21V21l-9.5-1.4z"/></svg>Download for Windows</a>
           <a class="btn btn-light btn-lg" href="#hero-stage">Try it right here</a>
         </div>
       </div>
@@ -359,10 +358,10 @@
       <div class="lineup">
         <article class="lu card reveal">
           <div class="lu-art a1"><img src="assets/slice-logo-512.png" alt=""></div>
-          <span class="badge live">Available now</span>
+          <span class="badge badge-live">Available now</span>
           <h3>Slice</h3>
           <p>The full AI-native browser for Windows.</p>
-          <a class="btn btn-dark btn-sm" href="#download">Download</a>
+          <a class="btn btn-dark btn-sm" href="https://github.com/ThatMaxwell/Slice/releases/latest/download/Slice-Setup.exe" data-dl>Download</a>
         </article>
         <article class="lu card reveal">
           <div class="lu-art a2"><div class="phone"><i class="mini-mark"></i></div></div>
@@ -371,7 +370,7 @@
           <p>Your partner in your pocket.</p>
         </article>
         <article class="lu card reveal">
-          <div class="lu-art a3"><div class="tile mini"><i class="mini-mark"></i></div></div>
+          <div class="lu-art a3"><img src="assets/slice-mini-app.webp" alt="Slice Mini logo"></div>
           <span class="badge">Coming soon</span>
           <h3>Slice Mini</h3>
           <p>Featherweight. For older PCs and focus.</p>
@@ -397,9 +396,10 @@
         <h2>Get Slice.</h2>
         <p>Free for Windows 10 & 11. No account needed.</p>
         <div class="dl-btns">
-          <a class="btn btn-dark btn-lg" href="https://github.com/ThatMaxwell/Slice/releases/latest"><svg viewBox="0 0 24 24" class="win"><path d="M3 5.5l7.5-1v7H3zM3 12.5h7.5v7L3 18.5zM11.5 4.4L21 3v8.5h-9.5zM11.5 12.5H21V21l-9.5-1.4z"/></svg>Download installer</a>
-          <a class="btn btn-light btn-lg" href="https://github.com/ThatMaxwell/Slice/releases/latest">Portable .exe</a>
+          <a class="btn btn-dark btn-lg" href="https://github.com/ThatMaxwell/Slice/releases/latest/download/Slice-Setup.exe" data-dl><svg viewBox="0 0 24 24" class="win"><path d="M3 5.5l7.5-1v7H3zM3 12.5h7.5v7L3 18.5zM11.5 4.4L21 3v8.5h-9.5zM11.5 12.5H21V21l-9.5-1.4z"/></svg>Download installer</a>
+          <a class="btn btn-light btn-lg" href="https://github.com/ThatMaxwell/Slice/releases/latest/download/Slice-Portable.exe" data-dl>Portable .exe</a>
         </div>
+        <p class="dl-note">Windows may show “Windows protected your PC” for new apps: click <b>More info → Run anyway</b>.</p>
         <p class="dl-soon">Android, Slice Mini and Slice Pro — coming soon</p>
       </div>
     </section>
@@ -430,6 +430,8 @@
     </div>
     <p class="foot-note">© 2026 Slice. Not affiliated with Google, The Browser Company, Zen or uBlock Origin.</p>
   </footer>
+
+  <div class="dl-toast" id="dl-toast" role="status" aria-live="polite"><img src="assets/slice-logo-512.png" alt=""><div><b>Your download is starting</b><span id="dl-toast-file">Open Slice-Setup.exe when it finishes.</span></div></div>
 
   <script src="main.js"></script>
 </body>

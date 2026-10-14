@@ -4,7 +4,7 @@
 
 <h1 align="center">Slice</h1>
 <p align="center"><b>Say it. Slice does it.</b><br>An AI-native browser for Windows. Built on Blink, with uBlock Origin built in.</p>
-<p align="center"><a href="https://thatmaxwell.github.io/Slice/">Website</a> · <a href="https://github.com/ThatMaxwell/Slice/releases/latest">Download</a> · <a href="RESEARCH.md">Design research</a></p>
+<p align="center"><a href="https://thatmaxwell.github.io/Slice/">Website</a> · <a href="https://github.com/ThatMaxwell/Slice/releases/latest/download/Slice-Setup.exe">Download (Windows)</a> · <a href="RESEARCH.md">Design research</a></p>
 
 <p align="center"><img src="docs/assets/screens/new-tab-chat.jpg" width="900" alt="Slice new tab with AI answer and results panel"></p>
 
@@ -135,4 +135,4 @@ docs/              the website (GitHub Pages)
 - **"Ungoogled Chromium":** Slice runs Blink through Electron's Chromium build. It isn't a fork of the ungoogled-chromium project. Electron already ships without Google accounts, sync, Safe Browsing and Google Update, and Slice switches off the remaining phone-home features with flags.
 - **"uBlock Origin":** Electron can't run the full uBO extension, so Slice runs uBO's own filter lists natively in a uBO-compatible engine.
 - **Web search** uses free endpoints (DuckDuckGo, then Bing). For production reliability, add a Brave Search API key in Settings → AI, or use a Gemini key with Google grounding.
-- **Coming soon:** Slice for Android, Slice Mini, Slice Pro.
+- **Coming soon:** Slice for Android, Slice Mini (logo in `assets/brand/slice-mini-app-*.png`), Slice Pro.

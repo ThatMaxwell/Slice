@@ -14,7 +14,7 @@
   let ac = null;
   try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch { /* no audio */ }
   const unlock = () => { if (ac && ac.state !== 'running') ac.resume().catch(() => {}); };
-  ['pointerdown', 'keydown', 'touchstart'].forEach((e) => addEventListener(e, unlock, { capture: true, passive: true }));
+  ['pointerdown', 'pointerup', 'click', 'keydown', 'touchstart', 'touchend'].forEach((e) => addEventListener(e, unlock, { capture: true, passive: true }));
 
   function chime() {
     if (!ac || ac.state !== 'running') return false;
@@ -98,13 +98,14 @@
     await sleep(reduce ? 200 : 1000);
     if (booted) return;
     boot.classList.add('show-white');
-    if (!chime() && ac) soundChip.hidden = false;
+    // Sound is on by default. Browsers only let a page make sound after a tap or key press,
+    // so if this one hasn't had one yet, the intro waits here on the white mark for it.
+    if (!chime() && ac) { await waitForGesture(); chime(); }
     await sleep(reduce ? 300 : 1400);
     if (booted) return;
     boot.classList.add('show-color');
     await sleep(reduce ? 300 : 1500);
     if (booted) return;
-    soundChip.hidden = true;
     await flyToNav();
     finishBoot();
   }
@@ -124,6 +125,22 @@
     await sleep(reduce ? 200 : 1080);
   }
 
+  function waitForGesture() {
+    return new Promise((resolve) => {
+      soundChip.hidden = false;
+      boot.classList.add('await-tap');
+      const go = async () => {
+        ['pointerup', 'click', 'keydown', 'touchend'].forEach((e) => removeEventListener(e, go, true));
+        unlock();
+        for (let i = 0; i < 20 && ac.state !== 'running'; i++) await sleep(25);
+        soundChip.hidden = true;
+        boot.classList.remove('await-tap');
+        resolve();
+      };
+      ['pointerup', 'click', 'keydown', 'touchend'].forEach((e) => addEventListener(e, go, true));
+    });
+  }
+
   function endBoot(fade = 1200) {
     booted = true;
     document.body.classList.remove('is-booting');
@@ -133,8 +150,6 @@
     startDemo();
   }
   function finishBoot() { if (!booted) endBoot(); }
-  $('#skip').addEventListener('click', () => { boot.style.transition = 'opacity .5s'; endBoot(600); });
-  soundChip.addEventListener('click', (e) => { e.stopPropagation(); unlock(); setTimeout(chime, 60); soundChip.hidden = true; });
 
   let heroRevealed = false;
   function revealHero() {
@@ -640,7 +655,18 @@
   addEventListener('resize', onScroll);
   onScroll();
 
-  $$('a[href^="#"]').forEach((a) => a.addEventListener('click', () => { if (!booted) $('#skip').click(); }));
+
+  // Download buttons fetch the .exe straight away (GitHub's latest-release asset URL), no GitHub page.
+  const toast = $('#dl-toast');
+  let toastTimer;
+  $$('a[data-dl]').forEach((a) => a.addEventListener('click', () => {
+    const file = a.href.split('/').pop();
+    $('#dl-toast-file').textContent = /windows/i.test(navigator.userAgent) || !matchMedia('(hover: none)').matches
+      ? `Open ${file} when it finishes.` : `Slice is for Windows — grab ${file} on your PC.`;
+    toast.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('on'), 6000);
+  }));
 
   runBoot();
 })();
