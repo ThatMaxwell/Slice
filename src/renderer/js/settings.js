@@ -95,7 +95,7 @@ S.settingsUI = (() => {
       seg('transparency', 'Transparency', 'See your wallpaper through the browser frame. Windows 11 & macOS.', [['off', 'Off'], ['mica', 'Mica'], ['acrylic', 'Acrylic'], ['tabbed', 'Tabbed']]),
       slider('glass', 'Frame opacity', 'Lower = more see-through.', 0, 100, 1, '%'),
       S.el('h3', { text: 'Details' }),
-      select('font', 'Font', null, [['system', 'System'], ['inter', 'Inter'], ['rounded', 'Rounded'], ['mono', 'Mono'], ['serif', 'Serif']]),
+      select('font', 'Font', null, [['slice', 'Slice (Instrument Sans)'], ['system', 'System'], ['inter', 'Inter'], ['rounded', 'Rounded'], ['mono', 'Mono'], ['serif', 'Serif']]),
       toggle('animations', 'Animations', 'Smooth motion everywhere. Turn off for instant everything.'),
       toggle('siteTint', 'Tint with the site', 'The toolbar picks up the colour of the page you’re on.'),
     ];
@@ -261,20 +261,45 @@ S.settingsUI = (() => {
     ];
   }
 
-  function buildAccount() {
+  async function buildAccount() {
     const s = cur();
-    const p = s.googleProfile;
+    const p = s.profile || {};
+    const email = S.el('input', { type: 'email', placeholder: 'you@gmail.com', spellcheck: 'false' });
+    email.value = p.email || '';
+    const name = S.el('input', { type: 'text', placeholder: 'Your name' });
+    name.value = p.name || '';
+    email.addEventListener('change', () => {
+      if (!S.isEmail(email.value)) { S.toast('That doesn’t look like an email address'); return; }
+      const d = S.profileFromEmail(email.value);
+      set({ profile: { ...d, name: name.value.trim() || d.name, givenName: (name.value.trim().split(/\s+/)[0]) || d.givenName } });
+      if (!name.value.trim()) name.value = d.name;
+    });
+    name.addEventListener('change', () => set({ profile: { ...(cur().profile || {}), name: name.value.trim(), givenName: name.value.trim().split(/\s+/)[0] || '' } }));
+
+    // Puter: the only sign-in Slice uses (it powers the free AI)
+    const puterRow = S.el('div', { class: 'account-card' }, S.el('span', { class: 'puter-mark lg', text: 'P' }), S.el('div', {}, S.el('b', { text: 'Puter' }), S.el('span', { text: 'Checking…' })));
+    S.ai.puterAuth.user().then((u) => {
+      const info = S.$('div span', puterRow);
+      if (u) {
+        info.textContent = `Signed in${u.username ? ` as @${u.username}` : ''} — free AI is on`;
+        puterRow.append(button('Sign out', async () => { await S.ai.puterAuth.signOut(); render(); }, 'ghost'));
+      } else {
+        info.textContent = 'Not signed in — the free AI needs this';
+        puterRow.append(button('Sign in with Puter', async () => {
+          try { await S.ai.puterAuth.signIn(); S.toast('Signed in to Puter', { icon: '✓' }); } catch (e) { S.toast(`Puter: ${e?.error || e?.message || e}`); }
+          render();
+        }, 'primary'));
+      }
+    });
+
     return [
-      p
-        ? S.el('div', { class: 'account-card' },
-          p.picture ? S.el('img', { src: p.picture, alt: '', referrerpolicy: 'no-referrer' }) : S.el('span', { class: 'letter big', text: (p.name || '?')[0] }),
-          S.el('div', {}, S.el('b', { text: p.name }), S.el('span', { text: p.email })),
-          button('Sign out', () => window.slice.oauth.signOut(), 'ghost'))
-        : S.el('div', { class: 'account-card empty' },
-          S.el('span', { class: 'letter big', text: 'G' }),
-          S.el('div', {}, S.el('b', { text: 'Not signed in' }), S.el('span', { text: 'Sign in so Slice knows your name.' })),
-          button('Continue with Google', () => S.onboarding.google().then(render), 'primary')),
-      text('oauthClientId', 'OAuth client ID', 'Google Cloud → Credentials → OAuth client (Desktop app). Only needed for your own builds.', { placeholder: '1234-abc.apps.googleusercontent.com' }),
+      S.el('div', { class: 'account-card' }, S.avatar(s.profile, 48),
+        S.el('div', {}, S.el('b', { text: p.name || 'No name yet' }), S.el('span', { text: p.email || 'Add your Gmail below' }))),
+      row('Gmail', 'Slice works out your name from it. It stays on this PC.', email),
+      row('Name', 'What Slice calls you.', name),
+      S.el('h3', { text: 'Sign-in' }),
+      puterRow,
+      S.el('p', { class: 'set-note', text: 'Puter is the only account Slice asks for. Using your own API key instead? Set it in Settings → AI.' }),
     ];
   }
 

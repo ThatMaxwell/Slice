@@ -70,7 +70,7 @@ You can view, delete or pause all of it in Settings → Memory. Private tabs (<k
 - **Mods:** your own CSS for the browser frame, plus theme export and import
 - Six onboarding **fine-tunes** (Bestie, Researcher, Maker, Minimalist, Creative, Student) that set personality and defaults
 
-<p align="center"><img src="docs/assets/screens/lemon-sidebar.jpg" width="440" alt="Lemon theme, sidebar mode"> <img src="docs/assets/screens/settings.jpg" width="440" alt="Settings"></p>
+<p align="center"><img src="docs/assets/screens/setup.jpg" width="440" alt="Setup: type your Gmail"> <img src="docs/assets/screens/settings.jpg" width="440" alt="Settings"></p>
 
 ### Private and fast
 - **Blink engine** (Chromium 152 via Electron 44)
@@ -79,9 +79,9 @@ You can view, delete or pause all of it in Settings → Memory. Private tabs (<k
 - Global Privacy Control and DNT headers, a per-site permission prompt, and downloads straight to your Downloads folder
 
 ### Setup: three clicks
-1. **Continue with Google.** This uses OAuth 2.0 for desktop apps (system browser, loopback redirect and PKCE), because Google blocks sign-in inside embedded webviews.
-2. **Pick your fine-tunes.**
-3. **Start browsing.**
+1. **Type your Gmail.** Slice works out your name from it, and it never leaves your PC.
+2. **Sign in with Puter.** This is the only account Slice needs, and it powers the free AI. Prefer your own key? There's a "use my own AI key instead" link.
+3. **Pick your Slice** (fine-tunes), then **Start browsing**.
 
 ## Run it
 
@@ -94,14 +94,6 @@ npm run dist:win   # build the NSIS installer and portable .exe into dist/
 ```
 
 **Releasing:** bump `version` in `package.json` and push to `main`. `.github/workflows/release.yml` builds `Slice-Setup.exe` and `Slice-Portable.exe` on GitHub Actions and publishes release `v<version>`. Those fixed names are what the website's Download buttons fetch directly (`/releases/latest/download/Slice-Setup.exe`).
-
-### Google sign-in
-Create an OAuth client of type **Desktop app** in Google Cloud Console → Credentials. Then give Slice the ID in one of three ways:
-- Settings → Account → OAuth client ID
-- the `SLICE_GOOGLE_CLIENT_ID` (and optionally `SLICE_GOOGLE_CLIENT_SECRET`) environment variables
-- `src/main/oauth.config.json` → `{ "clientId": "…", "clientSecret": "…" }` (this file is git-ignored)
-
-Without a client ID, the button explains that and lets you continue.
 
 ### Paparazzi (screenshots on every device)
 [Paparazzi](https://github.com/cashapp/paparazzi) is Cash App's screenshot-testing tool for Android. `scripts/paparazzi.js` does the same job for Slice's web code. It renders the website and the browser UI on desktop, iPhone 17, iPhone 17 Pro Max, iPhone Duo (folded 466×678, unfolded 890×626, Split View 445×626), iPad, and a Duo being unfolded mid-visit. Shots go to `paparazzi/` with a `contact-sheet.png`. **It fails if any page scrolls sideways on any device.** Run `npx playwright install chromium` once first, or set `PAPARAZZI_CHROME` to any Chrome.
@@ -120,7 +112,7 @@ src/
     search.js      fast web search (Brave API → DuckDuckGo → Bing), page reader, image search
     memory.js      taste memory + privacy classifier
     adblock.js     uBlock Origin lists in the Ghostery engine
-    oauth.js       Google OAuth (loopback + PKCE)
+    http.js        all network calls go through Chromium's stack (net.fetch)
   renderer/        the browser UI (served from a fixed 127.0.0.1 origin so Puter.js can sign in)
     js/ai.js       routing ("yo"), web heuristics, cached system prompt, Puter.js, action parsing
     js/chat.js     conversation engine shared by the new tab and the page assistant

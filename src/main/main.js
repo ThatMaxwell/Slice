@@ -12,7 +12,6 @@ const { createAdblock } = require('./adblock');
 const { createKeys } = require('./keys');
 const search = require('./search');
 const ai = require('./ai');
-const oauth = require('./oauth');
 
 // Safety net: a failure in background work (a flaky site, a dropped connection, a bad API reply)
 // must never put an error dialog in front of the user or take the browser down. Log it instead.
@@ -89,6 +88,13 @@ function sanitizePatch(patch, fromAI) {
     if (k === 'aiProvider' && fromAI) {
       // the AI may only switch to a provider that will actually work
       if (AI_PROVIDERS[v]?.needsKey && !keys.get(v)) continue;
+    }
+    if (k === 'profile') {
+      if (v === null) { out[k] = null; continue; }
+      if (!v || typeof v !== 'object') continue;
+      const str = (x, n) => String(x || '').trim().slice(0, n);
+      out[k] = { name: str(v.name, 60), givenName: str(v.givenName, 40), email: str(v.email, 120).toLowerCase() };
+      continue;
     }
     if (k === 'aiModels' || k === 'aiBaseUrls') {
       if (!v || typeof v !== 'object') continue;
@@ -210,7 +216,7 @@ const SHORTCUT_KEYS = new Set(['t', 'w', 'n', 'l', 'r', 'f', 'j', 'k', 'd', 'e',
 function wireWebview(wc) {
   wc.setWindowOpenHandler(({ url, disposition }) => {
     if (disposition === 'new-window') {
-      // real popups (OAuth, payment windows) keep window.opener so sign-ins work
+      // real popups (sign-in windows, payments) keep window.opener so sign-ins work
       return { action: 'allow', overrideBrowserWindowOptions: { autoHideMenuBar: true, webPreferences: { partition: 'persist:slice' } } };
     }
     send('tab:open', { url, background: disposition === 'background-tab', opener: wc.id });
@@ -342,7 +348,7 @@ function registerIpc() {
     return { applied: clean, settings: settings.all };
   });
   ipcMain.handle('settings:reset', () => {
-    const keep = { onboarded: true, googleProfile: settings.all.googleProfile };
+    const keep = { onboarded: true, profile: settings.all.profile };
     settings.replace({ ...structuredClone(DEFAULT_SETTINGS), ...keep });
     applySettings({});
     send('settings:changed', settings.all);
@@ -362,24 +368,6 @@ function registerIpc() {
   ipcMain.handle('search:web', (_e, q, opts = {}) => search.web(q, { ...opts, braveKey: keys.get('brave') }));
   ipcMain.handle('search:images', (_e, q, opts) => search.images(q, opts));
   ipcMain.handle('search:fetch', (_e, url) => search.fetchPage(url, { timeout: 5000, maxChars: 9000 }));
-
-  ipcMain.handle('oauth:signIn', async () => {
-    try {
-      const { profile, refresh } = await oauth.signIn(settings.all);
-      settings.patch({ googleProfile: profile });
-      if (refresh) sessionStore.patch({ googleRefresh: refresh });
-      send('settings:changed', settings.all);
-      win?.focus();
-      return { ok: true, profile };
-    } catch (e) {
-      return { ok: false, code: e.code || 'ERROR', message: String(e.message || e) };
-    }
-  });
-  ipcMain.handle('oauth:signOut', () => {
-    settings.patch({ googleProfile: null });
-    sessionStore.patch({ googleRefresh: '' });
-    send('settings:changed', settings.all);
-  });
 
   ipcMain.handle('session:get', () => sessionStore.all);
   ipcMain.on('session:save', (_e, tabs) => sessionStore.patch({ tabs, savedAt: Date.now() }));
@@ -428,6 +416,7 @@ function migrateSettings() {
     if (p === 'custom') s.aiBaseUrls = { ...(s.aiBaseUrls || {}), custom: s.openaiBaseUrl || '' };
     if (s.aiProvider === 'openai') s.aiProvider = p;
   }
+  if (s.googleProfile && !s.profile) s.profile = { name: s.googleProfile.name || '', givenName: s.googleProfile.givenName || '', email: s.googleProfile.email || '' };
   if (s.aiModel && s.aiModel !== DEFAULT_SETTINGS.aiModel) s.aiModels = { ...(s.aiModels || {}), gemini: s.aiModel };
   for (const k of Object.keys(s)) if (!(k in DEFAULT_SETTINGS)) delete s[k];
   for (const [k, v] of Object.entries(DEFAULT_SETTINGS)) if (!(k in s)) s[k] = structuredClone(v);

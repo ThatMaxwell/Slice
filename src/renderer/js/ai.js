@@ -77,7 +77,7 @@ S.ai = (() => {
   function buildSystem(settings, profile) {
     const { FINE_TUNES, AI_SETTABLE, THEMES } = SliceConfig;
     const tunes = (settings.fineTunes || []).map((k) => FINE_TUNES[k]).filter(Boolean);
-    const who = settings.googleProfile?.givenName || settings.googleProfile?.name || '';
+    const who = settings.profile?.givenName || settings.profile?.name || '';
     const date = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     const lines = [];
     lines.push(`You are Slice — the AI built into the Slice web browser. You live in the user's new tab and in the page sidebar. You're their partner, not a search box: friendly, quick, real.`);
@@ -161,6 +161,21 @@ Rules: act only when asked or clearly implied. Before the block, say in a few wo
     return puterLoading;
   }
 
+  // Puter sign-in: the only account Slice asks for. Must be called straight from a click (it opens a popup).
+  const puterAuth = {
+    async user() {
+      try {
+        await loadPuter();
+        return window.puter.auth.isSignedIn() ? await window.puter.auth.getUser() : null;
+      } catch { return null; } // offline / Puter unreachable: treat as signed out
+    },
+    signIn() {
+      if (!window.puter) return Promise.reject(new Error('Puter.js is still loading — try again in a second.'));
+      return window.puter.auth.signIn();
+    },
+    async signOut() { await loadPuter(); window.puter.auth.signOut(); },
+  };
+
   async function* puterStream({ system, messages, model, signal }) {
     await loadPuter();
     const id = model.includes('/') ? model : `google/${model}`;
@@ -225,7 +240,7 @@ Rules: act only when asked or clearly implied. Before the block, say in a few wo
   }
 
   return {
-    SITES, route, needsWeb, imageQuery, init, stream, loadPuter, parseActions, visibleText, modelOf, modelLabel,
+    SITES, route, needsWeb, imageQuery, init, stream, loadPuter, puterAuth, parseActions, visibleText, modelOf, modelLabel,
     get system() { return SYSTEM; },
     get profile() { return PROFILE; },
   };

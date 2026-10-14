@@ -5,7 +5,7 @@ if (!window.slice) {
   const emit = (ch, p) => (listeners[ch] || []).forEach((f) => f(p));
   const on = (ch) => (fn) => { (listeners[ch] = listeners[ch] || []).push(fn); return () => {}; };
   const params = new URLSearchParams(location.search);
-  let settings = { ...SliceConfig.DEFAULT_SETTINGS, onboarded: !params.has('onboarding'), googleProfile: { name: 'Max', givenName: 'Max', email: 'max@example.com' } };
+  let settings = { ...SliceConfig.DEFAULT_SETTINGS, onboarded: !params.has('onboarding'), profile: params.has('onboarding') ? null : { name: 'Max Carter', givenName: 'Max', email: 'max.carter@gmail.com' } };
   for (const [k, v] of params) if (k in settings) settings[k] = v === 'true' ? true : v === 'false' ? false : isNaN(+v) || v === '' ? v : +v;
   const svgImg = (h, a, b, label) => `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="300" height="${h}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="300" height="${h}" fill="url(#g)"/><text x="16" y="${h - 18}" font-family="system-ui" font-size="15" fill="rgba(255,255,255,.85)">${label}</text></svg>`)}`;
   const PAL = [['#1e3c72', '#2a5298'], ['#ff7e5f', '#feb47b'], ['#43cea2', '#185a9d'], ['#614385', '#516395'], ['#f7971e', '#ffd200'], ['#00c6ff', '#0072ff'], ['#ee0979', '#ff6a00'], ['#3a1c71', '#d76d77']];
@@ -47,7 +47,6 @@ if (!window.slice) {
       test: async () => ({ ok: true, ms: 412, reply: 'OK' }),
     },
     keys: { status: async () => ({ gemini: { set: true, type: 'Gemini auth key (AQ.)', hint: 'AQ.A…9xQz' } }), set: async (p, k) => ({ set: !!k, type: 'Gemini auth key (AQ.)', hint: 'AQ.A…9xQz' }) },
-    oauth: { signIn: async () => ({ ok: false, code: 'NO_CLIENT_ID', message: 'mock' }), signOut: async () => {} },
     session: { get: async () => ({ tabs: (params.get('tabs') || '').split(',').filter(Boolean).map((u) => ({ url: `https://${u}` })) }), save: () => {} },
     app: { info: async () => ({ version: '0.1.0', electron: '44.7.2', chrome: '152', platform: 'win32' }), pendingUrls: async () => [], clearData: async () => {}, setDefault: async () => true },
     win: { overlay: async () => {}, fullscreen: async () => {}, onFullscreen: on('fs'), onFocus: on('focus') },

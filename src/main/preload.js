@@ -43,10 +43,6 @@ contextBridge.exposeInMainWorld('slice', {
     status: () => ipcRenderer.invoke('keys:status'),
     set: (provider, key) => ipcRenderer.invoke('keys:set', provider, key),
   },
-  oauth: {
-    signIn: () => ipcRenderer.invoke('oauth:signIn'),
-    signOut: () => ipcRenderer.invoke('oauth:signOut'),
-  },
   session: {
     get: () => ipcRenderer.invoke('session:get'),
     save: (tabs) => ipcRenderer.send('session:save', tabs),

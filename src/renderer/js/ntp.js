@@ -20,7 +20,7 @@ S.ntp = (() => {
     const sourcesPane = S.$('.pane-sources', el);
     const segBtns = S.$$('.seg button', el);
     const fit = S.autoGrow(input, 200);
-    const name = S.app.settings.googleProfile?.givenName;
+    const name = S.app.settings.profile?.givenName;
     S.$('.ntp-greet', el).textContent = tab.private ? 'Private tab — nothing here is remembered' : S.greeting(name);
     if (tab.private) el.classList.add('private');
 

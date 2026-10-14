@@ -95,3 +95,21 @@ S.bytes = (n) => {
   const i = Math.min(u.length - 1, Math.floor(Math.log(n) / Math.log(1024)));
   return `${(n / 1024 ** i).toFixed(i ? 1 : 0)} ${u[i]}`;
 };
+
+// "maxwell.carter+news@gmail.com" -> { givenName: 'Maxwell', name: 'Maxwell Carter', email }
+S.profileFromEmail = (raw) => {
+  const email = String(raw || '').trim().toLowerCase();
+  const local = email.split('@')[0].split('+')[0];
+  const cap = (w) => w.charAt(0).toUpperCase() + w.slice(1);
+  const words = local.split(/[._-]+/).map((w) => w.replace(/\d+/g, '')).filter((w) => w.length > 1);
+  const givenName = words[0] ? cap(words[0]) : '';
+  return { email, givenName, name: words.slice(0, 2).map(cap).join(' ') || givenName };
+};
+
+S.isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v || '').trim());
+
+// round initials avatar in the brand gradient
+S.avatar = (profile, size = 40) => {
+  const letters = (profile?.name || profile?.email || '?').split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+  return S.el('span', { class: 'avatar-initials', style: { width: `${size}px`, height: `${size}px`, fontSize: `${Math.round(size * 0.4)}px` }, text: letters });
+};

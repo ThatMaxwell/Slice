@@ -157,7 +157,7 @@
     customInstructions: '',
     memoryEnabled: true,
     // look
-    theme: 'shore',
+    theme: 'daylight',
     accent: '',                    // overrides theme accent when set
     accent2: '',
     tint: null,                    // overrides theme tint when set (0-40)
@@ -168,7 +168,7 @@
     glass: 55,                     // opacity of UI surfaces when transparent (0-100)
     radius: 12,
     density: 'cozy',               // compact | cozy | roomy
-    font: 'system',                // system | inter | rounded | mono | serif
+    font: 'slice',                 // slice | system | inter | rounded | mono | serif
     uiScale: 100,
     animations: true,
     siteTint: true,
@@ -180,8 +180,7 @@
     gpc: true,
     blockThirdPartyCookies: false,
     // account
-    googleProfile: null,
-    oauthClientId: '',
+    profile: null,                 // { name, givenName, email } — from the Gmail you type at setup
   };
 
   // Keys the AI is allowed to change on the user's behalf.
@@ -196,7 +195,7 @@
     glass: 'number 0-100',
     radius: 'number 0-24',
     density: ['compact', 'cozy', 'roomy'],
-    font: ['system', 'inter', 'rounded', 'mono', 'serif'],
+    font: ['slice', 'system', 'inter', 'rounded', 'mono', 'serif'],
     uiScale: 'number 80-130',
     animations: 'boolean',
     siteTint: 'boolean',
