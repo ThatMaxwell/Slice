@@ -5,3 +5,4 @@ out/
 .DS_Store
 Thumbs.db
 src/main/oauth.config.json
+paparazzi/

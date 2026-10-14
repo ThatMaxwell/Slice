@@ -18,6 +18,7 @@
   // accent / accent2 drive the whole UI. tint = how much the accent bleeds into the window.
   const THEMES = {
     shore:    { name: 'Shore',    accent: '#2f8cff', accent2: '#ffad5c', tint: 6,  mode: 'dark' },
+    daylight: { name: 'Daylight', accent: '#2f7bff', accent2: '#ff9a4d', tint: 4,  mode: 'light' },
     lemon:    { name: 'Lemon',    accent: '#f2cf1d', accent2: '#c6e04a', tint: 22, mode: 'light' },
     midnight: { name: 'Midnight', accent: '#7c8cff', accent2: '#b38cff', tint: 8,  mode: 'dark' },
     sakura:   { name: 'Sakura',   accent: '#ff7eb6', accent2: '#ffc2d9', tint: 14, mode: 'light' },
