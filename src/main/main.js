@@ -292,6 +292,31 @@ function wireWebview(wc) {
   });
 }
 
+// Google refuses sign-in from embedded browsers ("This browser or app may not be secure").
+// On Google's account pages only, Slice presents itself as Firefox: a Firefox user agent and
+// none of the Chromium client-hint headers that reveal an embedded browser.
+const GOOGLE_AUTH = /^https:\/\/accounts\.google\.com\//;
+const FIREFOX_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:144.0) Gecko/20100101 Firefox/144.0';
+function googleSignInHeaders(details) {
+  if (!GOOGLE_AUTH.test(details.url)) return false;
+  const h = details.requestHeaders;
+  for (const k of Object.keys(h)) {
+    if (/^user-agent$/i.test(k)) delete h[k];
+    if (/^sec-ch-ua/i.test(k)) delete h[k];
+  }
+  h['User-Agent'] = FIREFOX_UA;
+  return true;
+}
+function guardGoogleSignIn(wc) {
+  // navigator.userAgent must match too, or Google's page script still notices
+  const sync = (url) => {
+    const want = GOOGLE_AUTH.test(url) ? FIREFOX_UA : app.userAgentFallback;
+    if (wc.getUserAgent() !== want) wc.setUserAgent(want);
+  };
+  wc.on('did-start-navigation', (e) => { if (e.isMainFrame) sync(e.url); });
+  wc.on('will-redirect', (e) => { if (e.isMainFrame) sync(e.url); });
+}
+
 function setupSession(ses) {
   ses.setUserAgent(app.userAgentFallback);
   ses.setPermissionRequestHandler((wc, permission, callback, details) => {
@@ -311,6 +336,7 @@ function setupSession(ses) {
   ses.webRequest.onBeforeSendHeaders((details, cb) => {
     const h = details.requestHeaders;
     if (settings.all.gpc) { h['Sec-GPC'] = '1'; h.DNT = '1'; }
+    if (googleSignInHeaders(details)) { cb({ requestHeaders: h }); return; }
     // drop the client-hint that would advertise Electron
     for (const k of Object.keys(h)) if (/^sec-ch-ua$/i.test(k)) h[k] = h[k].replace(/,?\s*"Electron";v="[^"]*"/i, '');
     cb({ requestHeaders: h });
@@ -432,6 +458,7 @@ app.on('second-instance', (_e, argv) => {
 
 app.on('web-contents-created', (_e, wc) => {
   if (wc.getType() === 'webview') wireWebview(wc);
+  if (wc.getType() === 'webview' || wc.getType() === 'window') guardGoogleSignIn(wc);
   wc.on('will-attach-webview', (_ev, prefs, params) => {
     // tabs never get Node or custom preloads, whatever the UI asks for
     delete prefs.preload;
@@ -461,6 +488,11 @@ app.whenReady().then(async () => {
     send('adblock:blocked', { wcId, count: n });
   });
   ipcMain.on('adblock:reset', (_e, wcId) => tabsByWc.delete(wcId));
+  session.defaultSession.setUserAgent(app.userAgentFallback);
+  session.defaultSession.webRequest.onBeforeSendHeaders({ urls: ['https://accounts.google.com/*'] }, (details, cb) => {
+    googleSignInHeaders(details);
+    cb({ requestHeaders: details.requestHeaders });
+  });
   for (const ses of [webSession(), session.fromPartition('slice-private')]) {
     setupSession(ses);
     adblock.attach(ses);

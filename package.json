@@ -1,7 +1,7 @@
 {
   "name": "slice-browser",
   "productName": "Slice",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Slice — an AI-native browser. Say it, Slice does it.",
   "main": "src/main/main.js",
   "author": "Slice",
